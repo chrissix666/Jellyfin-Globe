@@ -1,0 +1,16 @@
+{
+  "category": "General",
+  "changelog": "1.0.0.0: globes built in the admin page from libraries, artwork types and a sort, each with its own rating limit, folders, black bars and picture fit; turned and zoomed like a map; opened from a globe button in the header, switched in a side menu, closed with X, Esc or Back; a double-click opens a title, plays it, its trailer or a photo, as a table per media type sets; animated artwork plays over its tile; updates by hand or by the task Build Globe, and the storage can be compacted.",
+  "description": "Shows the artwork of your libraries on globes you can turn and zoom; a double-click opens the title.",
+  "guid": "b37f9bfa-5337-424d-adbc-114488b2190d",
+  "name": "Globe",
+  "overview": "Turn and zoom through the posters, fanart, logos and discs of your libraries on globes.",
+  "owner": "chrissix666",
+  "targetAbi": "10.10.7.0",
+  "timestamp": "2026-10-29T00:00:00.0000000Z",
+  "version": "1.0.0.0",
+  "status": "Active",
+  "autoUpdate": false,
+  "assemblies": [],
+  "imagePath": "logo.png"
+}

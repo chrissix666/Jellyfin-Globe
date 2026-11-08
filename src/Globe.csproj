@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- One source, two builds: net8.0 for Jellyfin 10.10.7, net10.0 for Jellyfin 12.0+. Build with -f net8.0 / -f net10.0. -->
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Jellyfin.Plugin.Globe</RootNamespace>
+    <AssemblyName>Jellyfin.Plugin.Globe</AssemblyName>
+    <!-- Keeps the build machine's folders out of the DLL. -->
+    <PathMap>$(MSBuildProjectDirectory)=.</PathMap>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <Version>2.0.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Jellyfin's own packages: needed to compile, already loaded in the server, so never copied next to the plugin. -->
+    <PackageReference Include="Jellyfin.Controller" Version="10.10.6" ExcludeAssets="runtime" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Jellyfin.Model" Version="10.10.6" ExcludeAssets="runtime" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Jellyfin.Controller" Version="12.0.0" ExcludeAssets="runtime" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Jellyfin.Model" Version="12.0.0" ExcludeAssets="runtime" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <!-- SkiaSharp is shipped with the server (10.10.7: 2.88.9, 12.x: 3.119.4). -->
+    <PackageReference Include="SkiaSharp" Version="2.88.9" ExcludeAssets="runtime;native" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="SkiaSharp" Version="3.119.4" ExcludeAssets="runtime;native" Condition="'$(TargetFramework)' == 'net10.0'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.InteropServices.GuidAttribute">
+      <_Parameter1>b37f9bfa-5337-424d-adbc-114488b2190d</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Web\globe-button.js" LogicalName="globe-button.js" />
+    <EmbeddedResource Include="Web\globe.js" LogicalName="globe.js" />
+    <EmbeddedResource Include="Web\three.module.js" LogicalName="three.module.js" />
+    <EmbeddedResource Include="Web\jellyfin-logo.png" LogicalName="jellyfin-logo.png" />
+    <Content Include="LICENSE-three.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Plugin logo (meta.json imagePath), shown by Jellyfin's plugin pages. -->
+    <Content Include="logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- meta.json in each output folder, made from the one meta.json here: net8.0 as it is, net10.0 with its own targetAbi and version. -->
+  <Target Name="WriteMetaJson" AfterTargets="Build">
+    <Copy Condition="'$(TargetFramework)' == 'net8.0'" SourceFiles="meta.json" DestinationFolder="$(OutDir)" />
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+      <MetaJson>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\meta.json').TrimEnd())</MetaJson>
+      <MetaJson>$(MetaJson.Replace('"targetAbi": "10.10.7.0"', '"targetAbi": "12.0.0.0"').Replace('"version": "1.0.0.0"', '"version": "2.0.0.0"').Replace('"changelog": "1.0.0.0:', '"changelog": "2.0.0.0:'))</MetaJson>
+    </PropertyGroup>
+    <WriteLinesToFile Condition="'$(TargetFramework)' == 'net10.0'" File="$(OutDir)meta.json" Lines="$([MSBuild]::Escape($(MetaJson)))" Overwrite="true"
+      WriteOnlyWhenDifferent="true" />
+  </Target>
+
+</Project>

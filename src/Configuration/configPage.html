@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Globe</title>
+</head>
+<body>
+<div id="GlobeConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-button,emby-select,emby-checkbox">
+<div data-role="content"><div class="content-primary">
+<style>
+    #GlobeConfigPage { font-size: 14.888889px; color: #ccc; background: #101010; }
+    #GlobeConfigPage h2 { font-size: 1.5em; font-weight: 400; margin: .3em 0 .6em; color: #fff; }
+    #GlobeConfigPage h3 { font-size: 1.17em; font-weight: 400; color: #fff; margin: 0; }
+    #GlobeConfigPage #glTabBar { display: flex; border-bottom: 1px solid rgba(255,255,255,0.15); margin-bottom: 1em; }
+    #GlobeConfigPage #glTabBar .glTabButton { flex: 1; text-align: center; padding: 11px 4px; font-size: 12.5px; font-family: inherit; cursor: pointer; opacity: 0.65;
+        border: none; border-bottom: 2px solid transparent; background: none; color: inherit; }
+    #GlobeConfigPage #glTabBar .glTabButton.glTabActive { opacity: 1; border-bottom: 2px solid #00a4dc; font-weight: 500; }
+    #GlobeConfigPage #glTabBar .glTabSeparator { flex: 0 0 2px; width: 2px; height: 21px; align-self: center; background: rgba(255,255,255,0.15); }
+    #GlobeConfigPage .glTabPage { display: none; }
+    #GlobeConfigPage .glTabPage.glTabPageActive { display: block; }
+    #GlobeConfigPage .glHeaderRow { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+    #GlobeConfigPage .glHeaderButtons { display: flex; gap: 8px; }
+    #GlobeConfigPage .glRow { display: grid; grid-template-columns: 246px 1fr; align-items: center; padding: 2px 0;
+        border-top: 1px solid rgba(255,255,255,0.08); column-gap: 8px; row-gap: 0; }
+    #GlobeConfigPage .glRowLabel { grid-column: 1; grid-row: 1 / 3; align-self: center; }
+    #GlobeConfigPage .glRow > select, #GlobeConfigPage .glRow > input, #GlobeConfigPage .glRow > div:not(.glDesc) { grid-row: 1; grid-column: 2; }
+    #GlobeConfigPage .glDesc { grid-row: 2; grid-column: 1 / -1; margin: 0; font-size: 10.5px; line-height: 14px; min-height: 14px; color: #777;
+        padding: 4px 0 1px 254px; white-space: normal; overflow-wrap: break-word; }
+    #GlobeConfigPage .glRow.glRowCheckbox { height: 46px; }
+    #GlobeConfigPage .glSelect, #GlobeConfigPage .glText { max-width: 320px; width: 100%; box-sizing: border-box; height: 30px; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; color: inherit; padding: 0 8px; font-size: 13px; font-family: inherit; }
+    #GlobeConfigPage .glSelect option { background: #1c1c1c; color: #eee; }
+    #GlobeConfigPage .glText:focus { outline: none; border-color: #00a4dc; }
+    #GlobeConfigPage .glNumberBox { display: flex; align-items: center; gap: 6px; }
+    #GlobeConfigPage .glNumber { width: 90px; box-sizing: border-box; height: 30px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 3px; color: inherit; padding: 0 8px; font-size: 13px; font-family: inherit; }
+    #GlobeConfigPage .glColor { width: 60px; height: 30px; padding: 2px; box-sizing: border-box; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer; }
+    #GlobeConfigPage .glUnit { font-size: 12px; color: #999; }
+    #GlobeConfigPage .glFieldDisabled { opacity: 0.35; pointer-events: none; }
+    #GlobeConfigPage .glFieldDisabled .glFieldDisabled { opacity: 1; }
+    #GlobeConfigPage select:disabled, #GlobeConfigPage input:disabled { opacity: 1 !important; }
+    #GlobeConfigPage .checkboxContainer { grid-column: 2 !important; justify-self: start !important; margin: 0 !important; }
+    #GlobeConfigPage .emby-checkbox-label { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0 !important; height: 30px !important; cursor: pointer; }
+    #GlobeConfigPage input[type=checkbox] { -webkit-appearance: none; appearance: none; position: relative; width: 16px; height: 16px;
+        margin: 0; color: inherit; border: 0.14em solid currentColor; border-radius: 3px; background: transparent; cursor: pointer; flex-shrink: 0; }
+    #GlobeConfigPage input[type=checkbox]:checked { background: #00a4dc; border-color: #00a4dc; }
+    #GlobeConfigPage input[type=checkbox]:focus-visible { border-color: #00a4dc; }
+    #GlobeConfigPage input[type=checkbox]:checked:focus-visible { border-color: #fff; }
+    #GlobeConfigPage input[type=checkbox]:checked::after { content: ""; position: absolute; left: 4px; top: 0; width: 4px; height: 8px;
+        border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    #GlobeConfigPage .glCheckGroup { display: flex; flex-wrap: wrap; column-gap: 14px; row-gap: 2px; padding: 4px 0; }
+    #GlobeConfigPage .glCheckGroup .emby-checkbox-label { width: auto; }
+    #GlobeConfigPage .glCheckGroup span { font-size: 13px; white-space: nowrap; }
+    /* !important against Jellyfin's own emby-button rules */
+    #GlobeConfigPage .glActionButton { display: inline-block !important; box-sizing: border-box !important; padding: 0 !important; font-size: 12px !important;
+        font-weight: normal !important; font-family: inherit !important; border: 1px solid rgba(255,255,255,0.25) !important; border-radius: 3px !important;
+        background: rgba(255,255,255,0.08) !important; color: #eee !important; cursor: pointer !important; width: 112px !important; height: 29px !important;
+        line-height: 27px !important; text-align: center !important; margin: 0 !important; flex-shrink: 0; }
+    #GlobeConfigPage .glActionButton:hover { background: rgba(255,255,255,0.18) !important; }
+    #GlobeConfigPage .glActionButton:disabled { opacity: 0.35 !important; cursor: default !important; }
+    #GlobeConfigPage .glDangerButton { background: #3a1f1f !important; border-color: #6b3535 !important; color: #e0a0a0 !important; }
+    #GlobeConfigPage button.glAccentButton { background: #00a4dc; border-color: #00a4dc; color: #fff; }
+    #GlobeConfigPage button.glAccentButton:hover { background: #0090c2; }
+    #GlobeConfigPage button:focus-visible { outline: 2px solid #00a4dc !important; outline-offset: 2px !important; }
+    #GlobeConfigPage .glSaveButton { margin-top: 16px; }
+    #GlobeConfigPage .glMessage { font-size: 10.5px; line-height: 14px; min-height: 14px; margin-top: 6px; }
+    #GlobeConfigPage .glSuccess { color: #6dcf6d; }
+    #GlobeConfigPage .glError { color: #e07a7a; }
+    /* a globe: header with the chevron on the left */
+    #GlobeConfigPage .glGlobe { border-top: 1px solid rgba(255,255,255,0.15); }
+    #GlobeConfigPage .glGlobeHeader { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0; padding: 10px 0; background: none; border: none;
+        color: inherit; font-family: inherit; font-weight: 500; font-size: 13.5px; text-align: left; cursor: pointer; }
+    #GlobeConfigPage .glChevron { font-size: 10px; transition: transform 0.15s; display: inline-block; }
+    #GlobeConfigPage .glGlobeHeader[aria-expanded="true"] .glChevron { transform: rotate(90deg); }
+    #GlobeConfigPage .glGlobeName { flex: none; white-space: nowrap; }
+    #GlobeConfigPage .glGlobeSummary { flex: 0 1 auto; min-width: 0; font-size: 12px; font-weight: 400; opacity: .6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #GlobeConfigPage .glGlobeBody { margin-left: 10px; padding-bottom: 10px; }
+    #GlobeConfigPage .glGlobeBody[hidden] { display: none; }
+    #GlobeConfigPage .glProgress { width: 100%; max-width: 320px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    #GlobeConfigPage .glProgress > div { height: 100%; width: 0; background: #00a4dc; transition: width .3s; }
+    #GlobeConfigPage .glStatusLine { font-size: 12.5px; }
+    #GlobeConfigPage .glGlobeButtons { display: flex; gap: 8px; padding: 8px 0 0 254px; }
+    #GlobeConfigPage [hidden] { display: none !important; }
+    #GlobeConfigPage .glCredits p { font-size: 13px; line-height: 19px; margin: 4px 0; }
+    #GlobeConfigPage .glCredits a { color: #00a4dc; }
+    /* folders of a home video library: one level opens at a time */
+    #GlobeConfigPage .glTree, #GlobeConfigPage .glTreeChildren { display: flex; flex-direction: column; gap: 2px; }
+    #GlobeConfigPage .glTree { padding: 4px 0; max-height: 280px; overflow-y: auto; }
+    #GlobeConfigPage .glTreeChildren { padding-left: 20px; }
+    #GlobeConfigPage .glTreeLine { display: flex; align-items: center; gap: 4px; }
+    #GlobeConfigPage .glTreeLine span { font-size: 13px; }
+    #GlobeConfigPage .glTreeOpen { width: 18px; height: 22px; padding: 0; background: none; border: none; color: inherit; cursor: pointer; font-size: 10px; }
+    #GlobeConfigPage .glTreeOpen[aria-expanded="true"] { transform: rotate(90deg); }
+    #GlobeConfigPage .glTreeLibrary { font-size: 12px; color: #999; margin-top: 2px; }
+    #GlobeConfigPage .glEmpty { color: #888; font-size: 13px; padding: 14px 0; }
+    #GlobeConfigPage .glDangerBox { margin-top: 20px; padding-top: 12px; border-top: 1px solid rgba(255,80,80,0.3); }
+    #GlobeConfigPage .glDangerTitle { font-size: 11px; color: #cc8888; font-weight: 500; margin-bottom: 4px; }
+    #GlobeConfigPage .glDangerDesc { font-size: 10.5px; color: #999; margin-bottom: 8px; }
+    #GlobeConfigPage .glBackup { max-width: 54em; margin: 20px 0 0; padding: 16px 0 0; border-top: 1px solid rgba(255,255,255,0.15); }
+    #GlobeConfigPage .glBackup h3 { margin: 0 0 10px; font-size: 14px; font-weight: 500; }
+    #GlobeConfigPage .glCode { display: block; width: 100%; height: 70px; background: #1c1c1c; border: 1px solid #333; border-radius: 4px; color: #ccc;
+        font-family: monospace; font-size: 11px; line-height: 1.4; padding: 8px; box-sizing: border-box; resize: vertical; margin-bottom: 10px; }
+    #GlobeConfigPage .glCode:focus { outline: none; border-color: #00a4dc; }
+    #GlobeConfigPage .glBackupButtons { display: flex; gap: 8px; width: 100%; flex-wrap: wrap; }
+    #GlobeConfigPage .glBackupButtons button { flex: 1; min-width: 120px; text-align: center; justify-content: center; font-size: 12.5px; padding: 8px 4px; }
+    #GlobeConfigPage .glCopyButton { background: #2a2a2a; color: #ddd; }
+    #GlobeConfigPage .glCopyButton:disabled { opacity: .5; cursor: default; }
+    #GlobeConfigPage .glImportButton { background: #3a1f1f !important; border-color: #6b3535 !important; color: #e0a0a0 !important; }
+    /* narrow content area: label, control and description stacked */
+    #GlobeConfigPage .content-primary { container-type: inline-size; container-name: globepage; }
+    @container globepage (max-width: 803.98px) {
+        #GlobeConfigPage .glRow { grid-template-columns: minmax(0, 1fr); row-gap: 4px; padding: 6px 0; }
+        #GlobeConfigPage .glRow.glRowCheckbox { height: auto; }
+        #GlobeConfigPage .glRowLabel { grid-row: 1; }
+        #GlobeConfigPage .glRow > select, #GlobeConfigPage .glRow > input, #GlobeConfigPage .glRow > div:not(.glDesc) { grid-row: 2; grid-column: 1; }
+        #GlobeConfigPage .glRow > .checkboxContainer { grid-column: 1 !important; }
+        #GlobeConfigPage .glDesc { grid-row: 3; padding-left: 0; }
+        #GlobeConfigPage .glGlobeButtons { padding-left: 0; }
+        #GlobeConfigPage .glHeaderRow { flex-wrap: wrap; }
+    }
+    #GlobeConfigPage .glSubhead { margin: 18px 0 6px; font-size: 14px; font-weight: 500; opacity: .85; }
+</style>
+<form id="GlobeConfigForm" novalidate>
+    <h2>Globe</h2>
+
+    <div id="glTabBar">
+        <button type="button" class="glTabButton" data-tab="general">General</button>
+        <button type="button" class="glTabButton" data-tab="globes">Globes</button>
+        <button type="button" class="glTabButton" data-tab="credits">Credits</button>
+    </div>
+
+    <div class="glTabPage" data-tabpage="general">
+        <div class="glHeaderRow"><h3>General</h3>
+            <button type="button" is="emby-button" class="raised glActionButton emby-button" data-restore="general">Restore defaults</button></div>
+
+        <h3 class="glSubhead">Double-Click</h3>
+        <div class="glRow"><label class="glRowLabel" for="MovieAction">Movie</label>
+            <select id="MovieAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
+                <option value="Details">Detail Page</option><option value="Play">Play</option><option value="Trailer">Trailer</option></select>
+            <div class="glDesc">Trailer plays the movie's own trailer, else one from the internet.</div></div>
+        <div class="glRow" id="glNoTrailerRow"><label class="glRowLabel" for="NoTrailerAction">Movie Without Trailer</label>
+            <select id="NoTrailerAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
+                <option value="Details">Detail Page</option><option value="Play">Play</option></select>
+            <div class="glDesc">What Trailer does for a movie that has no trailer at all.</div></div>
+        <div class="glRow"><label class="glRowLabel" for="SeriesAction">Series</label>
+            <select id="SeriesAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
+                <option value="Details">Detail Page</option><option value="Play">Play</option></select>
+            <div class="glDesc">Play starts the series like Jellyfin's play button.</div></div>
+        <div class="glRow"><label class="glRowLabel" for="SeasonAction">Season</label>
+            <select id="SeasonAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
+                <option value="Details">Detail Page</option><option value="Play">Play</option></select>
+            <div class="glDesc">Play starts the season from its first episode.</div></div>
+        <div class="glRow"><label class="glRowLabel" for="CollectionAction">Collection</label>
+            <select id="CollectionAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
+                <option value="Details">Detail Page</option><option value="Play">Play</option></select>
+            <div class="glDesc">Play starts the movies of the collection one after the other.</div></div>
+        <div class="glRow"><label class="glRowLabel" for="HomeVideoAction">Home Video</label>
+            <select id="HomeVideoAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
+                <option value="Details">Detail Page</option><option value="Play">Play</option></select>
+            <div class="glDesc">What a double-click on a video of a home video library does.</div></div>
+        <div class="glRow"><label class="glRowLabel" for="PhotoAction">Photo</label>
+            <select id="PhotoAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
+                <option value="Viewer">Photo Viewer</option><option value="Details">Detail Page</option></select>
+            <div class="glDesc">Photo Viewer opens the picture in Jellyfin's photo player.</div></div>
+        <div class="glRow" id="glGameRow" hidden><label class="glRowLabel" for="GameAction">Game</label>
+            <select id="GameAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
+                <option value="Details">Detail Page</option><option value="Play">Play</option><option value="OpenInPlaynite">Open in Playnite</option></select>
+            <div class="glDesc">Play starts or installs the game, and a globe's rating limit holds whatever the Bridge's settings.</div></div>
+
+        <h3 class="glSubhead">Globes</h3>
+        <div class="glRow"><label class="glRowLabel" for="OpeningGlobe">Globe on Opening</label>
+            <select id="OpeningGlobe" is="emby-select" class="emby-select-withcolor emby-select glSelect"></select>
+            <div class="glDesc">The globe the header button opens first.</div></div>
+        <div class="glRow glRowCheckbox"><span class="glRowLabel">Play Animated Artwork</span>
+            <div class="checkboxContainer"><label class="emby-checkbox-label"><input type="checkbox" id="PlayAnimatedArtwork"><span></span></label></div>
+            <div class="glDesc">Only matters when animated artwork is used.</div></div>
+        <div class="glRow glRowCheckbox"><span class="glRowLabel">Update All Automatically</span>
+            <div class="checkboxContainer"><label class="emby-checkbox-label"><input type="checkbox" id="glAutoAll"><span></span></label></div>
+            <div class="glDesc" id="glAutoDesc">Ticks or clears Update Automatically on every globe at once.</div></div>
+        <div class="glRow glRowCheckbox"><span class="glRowLabel">Compact on Update</span>
+            <div class="checkboxContainer"><label class="emby-checkbox-label"><input type="checkbox" id="CompactOnUpdate"><span></span></label></div>
+            <div class="glDesc">The automatic update compacts the stored images once a quarter of their space is free.</div></div>
+
+        <h3 class="glSubhead">Storage</h3>
+        <div class="glRow"><label class="glRowLabel" for="DataFolder">Data Folder</label>
+            <input id="DataFolder" type="text" class="glText">
+            <div class="glDesc" id="glFolderDesc">An empty folder or one with Globe's data (empty: metadata folder), after a change every globe is built anew.</div></div>
+        <div class="glRow"><span class="glRowLabel">Globe Data</span>
+            <div class="glNumberBox"><span class="glStatusLine" id="glStoreLine"></span>
+                <button type="button" is="emby-button" id="glCompact" class="raised glActionButton emby-button">Compact</button></div>
+            <div class="glDesc">Compact frees the space of images no globe uses any more, it runs as a task.</div></div>
+        <div class="glRow" id="glOldRow" hidden><span class="glRowLabel">Old Data Folder</span>
+            <div class="glNumberBox"><span class="glStatusLine" id="glOldLine"></span>
+                <button type="button" is="emby-button" id="glDeleteOld" class="raised glActionButton glDangerButton emby-button">Delete</button></div>
+            <div class="glDesc">Deletes only Globe's own data there, for good and without the recycle bin.</div></div>
+
+        <div class="glBackup">
+            <h3>Backup / restore via code</h3>
+            <textarea id="glCode" class="glCode" aria-label="Backup code" placeholder="Click &quot;Generate&quot; to create a backup code, or paste a previously saved one here to restore it."></textarea>
+            <div class="glBackupButtons">
+                <button type="button" is="emby-button" id="glGenerate" class="block emby-button glAccentButton">Generate</button>
+                <button type="button" is="emby-button" id="glCopy" class="block emby-button glCopyButton" disabled>Copy to clipboard</button>
+                <button type="button" is="emby-button" id="glImport" class="block emby-button glImportButton">Import</button>
+                <button type="button" is="emby-button" id="glSaveAll" class="block emby-button glAccentButton">Save all settings</button>
+            </div>
+            <div id="glBackupStatus" class="glMessage" role="status"></div>
+        </div>
+    </div>
+
+    <div class="glTabPage" data-tabpage="globes">
+        <div class="glHeaderRow"><h3>Globes</h3>
+            <div class="glHeaderButtons">
+                <button type="button" is="emby-button" id="glUpdateAll" class="raised glActionButton emby-button">Update All</button>
+                <button type="button" is="emby-button" id="glCreate" class="raised glActionButton emby-button">Create Globe</button>
+            </div></div>
+        <div class="glUnit" id="glTotalLine"></div>
+        <div id="glGlobes"></div>
+        <div class="glDangerBox">
+            <div class="glDangerTitle">Delete all globes</div>
+            <div class="glDangerDesc">Removes every globe and its data, delete here before uninstalling or the data stays in the data folder.</div>
+            <button type="button" is="emby-button" id="glDeleteAll" class="raised glActionButton glDangerButton emby-button">Delete All</button>
+        </div>
+    </div>
+
+    <div class="glTabPage glCredits" data-tabpage="credits">
+        <h3>Credits</h3>
+        <p>The globe is drawn with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> (revision 160), by the three.js authors, under the MIT License.</p>
+        <p>The licence text comes with the plugin as LICENSE-three.txt.</p>
+    </div>
+
+    <div id="glSaveStatus" class="glMessage" role="status"></div>
+    <button is="emby-button" type="submit" class="raised button-submit block emby-button glAccentButton glSaveButton"><span>Save</span></button>
+</form>
+</div></div>
+
+<script type="text/javascript">
+(function () {
+    var GlobeConfig = { pluginUniqueId: 'b37f9bfa-5337-424d-adbc-114488b2190d' };
+    var page = document.querySelector('#GlobeConfigPage:not([data-wired])');
+    if (!page) return;
+    page.setAttribute('data-wired', '1');
+
+    // One entry per general PluginConfiguration property; def = the C# default.
+    var GL_FIELDS = {
+        MovieAction: { type: 'select', def: 'Details' },
+        NoTrailerAction: { type: 'select', def: 'Details' },
+        SeriesAction: { type: 'select', def: 'Details' },
+        SeasonAction: { type: 'select', def: 'Details' },
+        CollectionAction: { type: 'select', def: 'Details' },
+        HomeVideoAction: { type: 'select', def: 'Details' },
+        PhotoAction: { type: 'select', def: 'Viewer' },
+        GameAction: { type: 'select', def: 'Details' },
+        OpeningGlobe: { type: 'select', def: '' },
+        PlayAnimatedArtwork: { type: 'checkbox', def: true },
+        CompactOnUpdate: { type: 'checkbox', def: false },
+        DataFolder: { type: 'text', def: '' }
+    };
+    var GLOBE_DEFAULTS = { Libraries: [], Folders: [], FolderMode: 'Only', Media: 'Both', ArtworkTypes: ['Poster'], IncludeChildren: false,
+        CollectionTitlesAlone: false, Backdrops: '1', Sort: 'SortName', Descending: false, Start: 'Front', Cluster: true, Reshuffle: 'Automatic',
+        MaxRating: '', LeaveOutUnrated: false, BlackBars: true, PictureFit: 'Adaptive', CropLimit: 15, CoverFit: 'Crop', Versions: 'Main',
+        KeepVersionsTogether: true, Discs: '1', AutoUpdate: false, Color: '#000000' };
+    var ARTWORK = [['Poster', 'Poster'], ['Backdrop', 'Backdrop'], ['Thumb', 'Thumb'], ['Logo', 'Logo'], ['Clearart', 'Clearart'], ['Banner', 'Banner'], ['Disc', 'Disc']];
+    var BACKDROP_MODES = { '1': 'main', '1-': 'all', '2-': 'others' };
+    var BACKDROP_CHOICE = /^\s*\d+(-\d*)?(\s*,\s*\d+(-\d*)?)*\s*$/;
+    // Jellyfin's sort options per library type (jellyfin-web movies.js, tvshows.js, moviecollections.js, list.js), without
+    // the ones by plays: a globe is a snapshot. Random is the plugin's own.
+    var SORTS = {
+        movies: ['SortName', 'CommunityRating', 'CriticRating', 'DateCreated', 'OfficialRating', 'PremiereDate', 'Runtime'],
+        tvshows: ['SortName', 'CommunityRating', 'DateCreated', 'DateLastContentAdded', 'OfficialRating', 'PremiereDate'],
+        boxsets: ['SortName', 'CommunityRating', 'DateCreated', 'OfficialRating', 'PremiereDate'],
+        homevideos: ['SortName', 'DateCreated', 'PremiereDate'],
+        // The games of Playnite Bridge, sorted by Globe from the Bridge's fields.
+        games: ['SortName', 'CommunityRating', 'DateCreated', 'OfficialRating', 'PremiereDate']
+    };
+    var SORT_NAMES = { SortName: 'Name', Random: 'Random', CommunityRating: 'Community Rating', CriticRating: 'Critics Rating', DateCreated: 'Date Added',
+        OfficialRating: 'Parental Rating', PremiereDate: 'Release Date', Runtime: 'Runtime', DateLastContentAdded: 'Date Episode Added' };
+    var MEDIA_NAMES = { movies: 'Movies', tvshows: 'Series', boxsets: 'Collections', homevideos: 'Home Videos', games: 'Games' };
+    // Artwork names for the suggested globe name, always English like this page.
+    var NAME_WORDS = { Poster: 'Posters', Backdrop: 'Fanart', Thumb: 'Thumbs', Logo: 'Logos', Clearart: 'Clearart', Banner: 'Banners', Disc: 'Discs' };
+
+    var libraries = [], ratings = [], globes = [], status = {}, sizes = {}, missing = {}, defaultFolder = '', savedFolder = '', gamesLibrary = '';
+    var loaded = false, polling = null;
+
+    function $(id) { return page.querySelector('#' + id); }
+    function escapeHtml(t) { return String(t).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+    function newId() { return ([1e7] + 1e3 + 4e3 + 8e3 + 1e11).replace(/[018]/g, function (c) { return (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16); }); }
+    function message(id, text, ok) { var m = $(id); m.textContent = text || ''; m.className = 'glMessage' + (text ? (ok ? ' glSuccess' : ' glError') : ''); }
+    function gigabytes(bytes) {
+        return bytes < 1073741824
+            ? Math.max(bytes ? 0.1 : 0, bytes / 1048576).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' MB'
+            : (bytes / 1073741824).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' GB';
+    }
+    function libraryOf(id) { return libraries.filter(function (l) { return l.ItemId === id; })[0]; }
+
+    // Tabs
+    page.querySelectorAll('#glTabBar .glTabButton').forEach(function (button, i, all) {
+        if (i < all.length - 1) button.insertAdjacentHTML('afterend', '<span class="glTabSeparator"></span>');
+        button.addEventListener('click', function () { showTab(button.dataset.tab); });
+    });
+    function showTab(tab) {
+        page.querySelectorAll('.glTabButton').forEach(function (b) { b.classList.toggle('glTabActive', b.dataset.tab === tab); });
+        page.querySelectorAll('.glTabPage').forEach(function (p) { p.classList.toggle('glTabPageActive', p.dataset.tabpage === tab); });
+    }
+    showTab('general');
+
+    // General fields
+    function setField(id, value) {
+        var el = $(id), type = GL_FIELDS[id].type;
+        if (type === 'checkbox') { el.checked = !!value; return; }
+        if (type === 'select') {
+            var known = [].some.call(el.options, function (o) { return o.value === value; });
+            el.value = known ? value : GL_FIELDS[id].def;
+            return;
+        }
+        el.value = value == null ? '' : value;
+    }
+    function getField(id) {
+        var el = $(id);
+        return GL_FIELDS[id].type === 'checkbox' ? el.checked : el.value.trim ? el.value.trim() : el.value;
+    }
+    function updateGeneral() {
+        var trailer = getField('MovieAction') === 'Trailer';
+        $('glNoTrailerRow').classList.toggle('glFieldDisabled', !trailer);
+        $('NoTrailerAction').disabled = !trailer;
+        var ticked = globes.filter(function (g) { return g.AutoUpdate; }).length;
+        $('glAutoAll').checked = ticked > 0 && ticked === globes.length;
+        $('glAutoAll').indeterminate = ticked > 0 && ticked < globes.length;
+    }
+    function fillOpening(value) {
+        $('OpeningGlobe').innerHTML = '<option value="">Last Used</option>' + globes.map(function (g) {
+            return '<option value="' + g.Id + '">' + escapeHtml(g.Name) + '</option>';
+        }).join('');
+        setField('OpeningGlobe', value);
+    }
+    $('MovieAction').addEventListener('change', updateGeneral);
+    // The master switch only sets the ticks of the globes; it is not stored itself.
+    $('glAutoAll').addEventListener('change', function () {
+        var on = $('glAutoAll').checked;
+        globes.forEach(function (g) { g.AutoUpdate = on; });
+        renderGlobes();
+    });
+
+    // Globes
+    function typesOf(globe) {
+        return globe.Libraries.map(function (id) { var lib = libraryOf(id); return lib ? (lib.CollectionType || 'movies') : null; })
+            .filter(function (t) { return t && SORTS[t]; });
+    }
+    function sortsFor(globe) {
+        var types = typesOf(globe);
+        if (!types.length) types = ['movies'];
+        var common = SORTS[types[0]].filter(function (s) { return types.every(function (t) { return SORTS[t].indexOf(s) >= 0; }); });
+        common.splice(1, 0, 'Random');
+        return common;
+    }
+    // English like this page; a name already taken gets " #2", " #3" and so on, compared without case and edge spaces.
+    function suggestName(globe) {
+        var libs = globe.Libraries.map(function (id) { var l = libraryOf(id); return l && l.Name; }).filter(Boolean);
+        var home = typesOf(globe).indexOf('homevideos') >= 0;
+        var types = ARTWORK.filter(function (a) { return globe.ArtworkTypes.indexOf(a[0]) >= 0; }).map(function (a) { return NAME_WORDS[a[0]]; });
+        if (home) types.unshift(globe.Media === 'Videos' ? 'Videos' : globe.Media === 'Photos' ? 'Photos' : 'Photos, Videos');
+        var name = libs.length ? libs.join(', ') + ' · ' + types.join(', ') : 'New Globe';
+        if (name.length > 60) name = name.slice(0, 59).trim() + '…';
+        var taken = globes.filter(function (g) { return g !== globe; }).map(function (g) { return g.Name.trim().toLowerCase(); });
+        for (var n = 2, base = name; taken.indexOf(name.toLowerCase()) >= 0; n++) name = base + ' #' + n;
+        return name;
+    }
+    function statusText(globe) {
+        var s = status[globe.Id];
+        var wait = globe.AutoUpdate ? '' : ', waits for a manual update';
+        if (!s || s.State === 'none') return 'Not built yet.';
+        if (s.State === 'waiting') return 'Waiting to be built.';
+        if (s.State === 'building') return 'Building – ' + Math.round(s.Percent) + ' % (' + (s.Phase || 'starting') + ')';
+        if (s.State === 'empty') return 'No artwork found for these settings.';
+        if (s.State === 'error') return 'Error: ' + (s.Error || 'the build failed');
+        if (missing[globe.Id]) return 'Playnite Bridge missing, the games stay as built.';
+        if (globe.Libraries.some(function (id) { return !libraryOf(id); })) return 'A library is missing' + wait + '.';
+        if (s.Changed) return 'Changes not built yet' + wait + '.';
+        var size = sizes[globe.Id];
+        return 'Done – ' + s.Images.toLocaleString() + ' images' + (size ? ' · ' + gigabytes(size.bytes) + ', ' + gigabytes(size.ownBytes) + ' only this globe' : '');
+    }
+    function summaryText(globe) {
+        var media = typesOf(globe).map(function (t) { return MEDIA_NAMES[t]; }).filter(function (m, i, all) { return all.indexOf(m) === i; });
+        var types = ARTWORK.filter(function (a) { return globe.ArtworkTypes.indexOf(a[0]) >= 0; }).map(function (a) { return a[1]; });
+        return [media.join(', '), types.join(', '), statusText(globe)].filter(Boolean).join(' · ');
+    }
+
+    function check(field, on, label, desc, row) {
+        return '<div class="glRow glRowCheckbox"' + (row ? ' data-row="' + row + '"' : '') + '><span class="glRowLabel">' + label + '</span><div class="checkboxContainer"><label class="emby-checkbox-label"><input type="checkbox" data-field="' + field + '"' + (on ? ' checked' : '') + '><span></span></label></div>'
+            + '<div class="glDesc">' + desc + '</div></div>';
+    }
+    function choose(field, options, label, desc, row) {
+        return '<div class="glRow"' + (row ? ' data-row="' + row + '"' : '') + '><label class="glRowLabel">' + label + '</label><select class="glSelect" data-field="' + field + '">'
+            + options.map(function (o) { return '<option value="' + escapeHtml(o[0]) + '">' + escapeHtml(o[1]) + '</option>'; }).join('') + '</select>'
+            + '<div class="glDesc">' + desc + '</div></div>';
+    }
+
+    function globeHtml(g) {
+        var libs = libraries.map(function (l) {
+            return '<label class="emby-checkbox-label"><input type="checkbox" data-library="' + l.ItemId + '"' + (g.Libraries.indexOf(l.ItemId) >= 0 ? ' checked' : '') + '><span>' + escapeHtml(l.Name) + '</span></label>';
+        }).join('');
+        var types = ARTWORK.map(function (a) {
+            return '<label class="emby-checkbox-label"><input type="checkbox" data-artwork="' + a[0] + '"' + (g.ArtworkTypes.indexOf(a[0]) >= 0 ? ' checked' : '') + '><span>' + a[1] + '</span></label>';
+        }).join('');
+        return '<div class="glGlobe" data-globe="' + g.Id + '">'
+            + '<button type="button" class="glGlobeHeader" aria-expanded="false"><span class="glChevron">▶</span><span class="glGlobeName"></span><span class="glGlobeSummary"></span></button>'
+            + '<div class="glGlobeBody" hidden>'
+            + '<div class="glRow"><label class="glRowLabel">Name</label><input type="text" class="glText" data-field="Name" value="' + escapeHtml(g.Name) + '">'
+            + '<div class="glDesc">The name shown in the side menu of the globe.</div></div>'
+            + '<div class="glRow"><span class="glRowLabel">Libraries</span><div class="glCheckGroup">' + libs + '</div>'
+            + '<div class="glDesc">The libraries whose titles the globe shows.</div></div>'
+            + choose('Media', [['Both', 'Videos and Photos'], ['Videos', 'Videos'], ['Photos', 'Photos']], 'Home Videos',
+                'Which titles of the home video libraries come in, each with its own picture.', 'media')
+            + choose('FolderMode', [['Only', 'Only Ticked Folders'], ['Except', 'All Except Ticked Folders']], 'Folder Mode',
+                'Whether the ticked folders are the whole globe or the parts left out.', 'foldermode')
+            + '<div class="glRow" data-row="folders"><span class="glRowLabel">Folders</span><div><div class="glUnit glTreeCount"></div><div class="glTree"></div></div>'
+            + '<div class="glDesc glFolderDesc"></div></div>'
+            + '<div class="glRow"><span class="glRowLabel">Artwork Types</span><div class="glCheckGroup">' + types + '</div>'
+            + '<div class="glDesc">Each title brings the types it has.</div></div>'
+            + check('IncludeChildren', g.IncludeChildren, 'Include Children', 'Seasons join their series and movies join their collection.')
+            + check('CollectionTitlesAlone', g.CollectionTitlesAlone, 'Collection Titles Alone', 'With children, a movie of a collection also stands on its own.', 'alone')
+            + '<div class="glRow" data-row="backdrops"><label class="glRowLabel">Backdrops</label><div class="glNumberBox"><select class="glSelect" data-field="BackdropMode" style="max-width:200px">'
+            + '<option value="main">Main Backdrop</option><option value="all">All</option><option value="others">All Except Main</option><option value="custom">Chosen Numbers</option></select>'
+            + '<input type="text" class="glText" data-field="BackdropNumbers" style="max-width:110px" placeholder="2-5, 8" value="' + escapeHtml(g.Backdrops) + '"></div>'
+            + '<div class="glDesc">Numbers count through the backdrops of a title with 1 as the main one, for example 2-5, 8.</div></div>'
+            + choose('Versions', [['Main', 'Main Version'], ['All', 'All Versions']], 'Versions', 'Which versions of a game come in, the one its tile shows or every one.', 'versions')
+            + check('KeepVersionsTogether', g.KeepVersionsTogether, 'Keep Versions Together', 'The versions of a game stand at the place of its main version.', 'together')
+            + '<div class="glRow" data-row="discs"><label class="glRowLabel">Discs</label><div class="glNumberBox"><select class="glSelect" data-field="DiscMode" style="max-width:200px">'
+            + '<option value="main">First Disc</option><option value="all">All</option><option value="others">All Except First</option><option value="custom">Chosen Numbers</option></select>'
+            + '<input type="text" class="glText" data-field="DiscNumbers" style="max-width:110px" placeholder="2-5, 8" value="' + escapeHtml(g.Discs) + '"></div>'
+            + '<div class="glDesc">Numbers count through the discs of a game with 1 as the first, a movie keeps its one disc.</div></div>'
+            + choose('CoverFit', [['Crop', 'Crop'], ['OwnShape', 'Own Shape'], ['BlurFill', 'Blur Fill'], ['Adaptive', 'Adaptive']], 'Cover Fit',
+                'How game covers fit their tile, Crop cuts them to the poster shape.', 'coverfit')
+            + choose('BlackBars', [['true', 'Remove'], ['false', 'Keep']], 'Black Bars',
+                'Remove blurs burned-in side bars and cuts the others, a change reads every picture again.')
+            + choose('PictureFit', [['Adaptive', 'Adaptive'], ['Crop', 'Crop'], ['OwnShape', 'Own Shape'], ['BlurFill', 'Blur Fill']], 'Picture Fit',
+                'How photos and home videos fit their tile, Adaptive crops up to the Crop Limit and fills the rest.', 'fit')
+            + '<div class="glRow" data-row="croplimit"><label class="glRowLabel">Crop Limit</label><div class="glNumberBox"><input type="number" class="glNumber" data-field="CropLimit" min="0" max="50" value="' + (g.CropLimit != null ? g.CropLimit : 15) + '"><span class="glUnit">%</span></div>'
+            + '<div class="glDesc">Adaptive crops a picture that loses at most this share and shows any other on the blurred fill.</div></div>'
+            + choose('MaxRating', [['', 'No Limit']].concat(ratings.map(function (r) { return [r.Name, r.Name]; })), 'Highest Rating',
+                'Titles above it stay out, and users with a parental limit see only globes within it.')
+            + check('LeaveOutUnrated', g.LeaveOutUnrated, 'Leave Out Unrated', 'Titles without a parental rating stay off the globe.')
+            + '<div class="glRow"><label class="glRowLabel">Sort</label><select class="glSelect" data-field="Sort"></select>'
+            + '<div class="glDesc">Jellyfin\'s sort options that all chosen libraries share, and Random.</div></div>'
+            + choose('Descending', [['false', 'Ascending'], ['true', 'Descending']], 'Sort Order', 'The direction of the sort.')
+            + check('Cluster', g.Cluster, 'Cluster', 'With Random: the artwork of a title stays together.', 'cluster')
+            + choose('Reshuffle', [['Automatic', 'On the Automatic Update'], ['Always', 'On Every Update'], ['Never', 'Never']], 'Reshuffle',
+                'When a random globe is mixed anew even though its titles stayed the same.', 'reshuffle')
+            + choose('Start', [['Front', 'In Front'], ['NorthPole', 'North Pole']], 'Start', 'Where the first title sits, in the middle of the screen or at the top of the globe.')
+            + '<div class="glRow"><label class="glRowLabel">Color</label><input type="color" class="glColor" data-field="Color" value="' + escapeHtml(g.Color || '#000000') + '">'
+            + '<div class="glDesc">Background and globe colour that shows through transparent artwork.</div></div>'
+            + check('AutoUpdate', g.AutoUpdate, 'Update Automatically', 'The task Build Globe checks this globe at the times set in Scheduled Tasks.')
+            + '<div class="glRow"><span class="glRowLabel">Status</span><div><div class="glStatusLine"></div><div class="glProgress"><div></div></div></div>'
+            + '<div class="glDesc">Changed settings rebuild the globe after saving, images count its tiles and sizes each picture once.</div></div>'
+            + '<div class="glGlobeButtons"><button type="button" is="emby-button" class="raised glActionButton emby-button" data-action="update">Update</button>'
+            + '<button type="button" is="emby-button" class="raised glActionButton glDangerButton emby-button" data-action="delete">Delete</button></div>'
+            + '</div></div>';
+    }
+
+    function globeOf(element) {
+        var box = element.closest('.glGlobe');
+        return { box: box, globe: globes.filter(function (g) { return g.Id === box.dataset.globe; })[0] };
+    }
+    function field(box, name) { return box.querySelector('[data-field="' + name + '"]'); }
+
+    // Reads the form of one globe back into its definition.
+    function readGlobe(box, globe) {
+        globe.Name = field(box, 'Name').value.trim() || globe.Name;
+        globe.Libraries = [].filter.call(box.querySelectorAll('[data-library]'), function (c) { return c.checked; }).map(function (c) { return c.dataset.library; });
+        // Folders count only for home video libraries that are still chosen.
+        globe.Folders = globe.Folders.filter(function (f) {
+            var lib = libraryOf(f.split(':')[0]);
+            return lib && lib.CollectionType === 'homevideos' && globe.Libraries.indexOf(lib.ItemId) >= 0;
+        });
+        globe.ArtworkTypes = [].filter.call(box.querySelectorAll('[data-artwork]'), function (c) { return c.checked; }).map(function (c) { return c.dataset.artwork; });
+        ['IncludeChildren', 'CollectionTitlesAlone', 'LeaveOutUnrated', 'Cluster', 'AutoUpdate', 'KeepVersionsTogether'].forEach(function (name) { globe[name] = field(box, name).checked; });
+        globe.BlackBars = field(box, 'BlackBars').value === 'true';
+        ['Media', 'FolderMode', 'PictureFit', 'MaxRating', 'Sort', 'Reshuffle', 'Start', 'Color', 'Versions', 'CoverFit'].forEach(function (name) { globe[name] = field(box, name).value; });
+        var discMode = field(box, 'DiscMode').value;
+        globe.Discs = discMode === 'custom' ? field(box, 'DiscNumbers').value.trim() : Object.keys(BACKDROP_MODES).filter(function (k) { return BACKDROP_MODES[k] === discMode; })[0];
+        var cropLimit = parseInt(field(box, 'CropLimit').value, 10);
+        globe.CropLimit = Math.max(0, Math.min(50, isNaN(cropLimit) ? 15 : cropLimit));
+        var mode = field(box, 'BackdropMode').value;
+        globe.Backdrops = mode === 'custom' ? field(box, 'BackdropNumbers').value.trim() : Object.keys(BACKDROP_MODES).filter(function (k) { return BACKDROP_MODES[k] === mode; })[0];
+        globe.Descending = field(box, 'Descending').value === 'true';
+    }
+
+    // Shows what depends on what: Sort options from the libraries, Cluster and Reshuffle with Random, the backdrop numbers
+    // with "Chosen Numbers", folders, media and fit with a home video library, the crop limit with Adaptive, collection
+    // titles with children; a name the admin has not typed follows the settings.
+    function updateGlobe(box, globe) {
+        var sort = field(box, 'Sort'), wanted = sort.value || globe.Sort;
+        var options = sortsFor(globe);
+        sort.innerHTML = options.map(function (s) { return '<option value="' + s + '">' + SORT_NAMES[s] + '</option>'; }).join('');
+        sort.value = options.indexOf(wanted) >= 0 ? wanted : options[0];
+        globe.Sort = sort.value;
+        var random = globe.Sort === 'Random', home = homeLibraries(globe).length > 0, games = !!gamesLibrary && globe.Libraries.indexOf(gamesLibrary) >= 0;
+        box.querySelector('[data-row="cluster"]').classList.toggle('glFieldDisabled', !random);
+        box.querySelector('[data-row="reshuffle"]').classList.toggle('glFieldDisabled', !random);
+        box.querySelector('[data-row="alone"]').classList.toggle('glFieldDisabled', !globe.IncludeChildren);
+        box.querySelector('[data-row="backdrops"]').classList.toggle('glFieldDisabled', globe.ArtworkTypes.indexOf('Backdrop') < 0);
+        field(box, 'BackdropNumbers').hidden = field(box, 'BackdropMode').value !== 'custom';
+        ['media', 'foldermode', 'fit'].forEach(function (row) { box.querySelector('[data-row="' + row + '"]').hidden = !home; });
+        // Game rows only with the games library; with Random and without Cluster the versions are mixed anyway.
+        ['versions', 'together', 'discs', 'coverfit'].forEach(function (row) { box.querySelector('[data-row="' + row + '"]').hidden = !games; });
+        box.querySelector('[data-row="together"]').classList.toggle('glFieldDisabled', random && !globe.Cluster);
+        box.querySelector('[data-row="discs"]').classList.toggle('glFieldDisabled', globe.ArtworkTypes.indexOf('Disc') < 0);
+        field(box, 'DiscNumbers').hidden = field(box, 'DiscMode').value !== 'custom';
+        box.querySelector('[data-row="croplimit"]').hidden = !home && !games;
+        box.querySelector('[data-row="croplimit"]').classList.toggle('glFieldDisabled',
+            !(home && globe.PictureFit === 'Adaptive') && !(games && globe.CoverFit === 'Adaptive'));
+        updateFolders(box, globe);
+        if (!globe.nameTyped) {
+            globe.Name = suggestName(globe);
+            field(box, 'Name').value = globe.Name;
+        }
+        box.querySelector('.glGlobeName').textContent = globe.Name;
+        updateStatus(box, globe);
+    }
+
+    // Folders of home video libraries, fetched one level at a time when opened, so any depth works; a ticked folder stands
+    // for everything below it.
+    function homeLibraries(globe) {
+        return libraries.filter(function (l) { return l.CollectionType === 'homevideos' && globe.Libraries.indexOf(l.ItemId) >= 0; });
+    }
+    function folderLine(folder, library, globe) {
+        return '<div><div class="glTreeLine"><button type="button" class="glTreeOpen" data-open="' + folder.Id + '" data-owner="' + library + '" aria-expanded="false">▶</button>'
+            + '<label class="emby-checkbox-label"><input type="checkbox" data-folder="' + library + ':' + folder.Id + '"' + (globe.Folders.indexOf(library + ':' + folder.Id) >= 0 ? ' checked' : '') + '>'
+            + '<span>' + escapeHtml(folder.Name) + '</span></label></div><div class="glTreeChildren" hidden></div></div>';
+    }
+    function loadFolders(parent, library, target, globe) {
+        return ApiClient.getItems(ApiClient.getCurrentUserId(), { ParentId: parent, IsFolder: true, SortBy: 'SortName' }).then(function (result) {
+            target.innerHTML = result.Items.length ? result.Items.map(function (f) { return folderLine(f, library, globe); }).join('') : '<div class="glUnit">No folders here.</div>';
+        }, function () {
+            target.innerHTML = '<div class="glUnit">The folders could not be loaded.</div>';
+        });
+    }
+    function updateFolders(box, globe) {
+        var home = homeLibraries(globe), tree = box.querySelector('.glTree'), except = globe.FolderMode === 'Except';
+        box.querySelector('[data-row="folders"]').hidden = !home.length;
+        var count = globe.Folders.length;
+        box.querySelector('.glTreeCount').textContent = count
+            ? count + (count === 1 ? ' folder ' : ' folders ') + (except ? 'left out' : 'chosen')
+            : 'Whole library';
+        box.querySelector('.glFolderDesc').textContent = except
+            ? 'The whole home video library counts without the ticked folders and everything below them.'
+            : 'Without a tick the whole home video library counts, a ticked folder brings everything below it.';
+        var shown = home.map(function (l) { return l.ItemId; }).join();
+        if (tree.dataset.shown === shown) return;
+        tree.dataset.shown = shown;
+        tree.innerHTML = home.map(function (l) {
+            return '<div class="glTreeLibrary">' + escapeHtml(l.Name) + '</div><div class="glTreeChildren" data-root="' + l.ItemId + '"></div>';
+        }).join('');
+        home.forEach(function (l) { loadFolders(l.ItemId, l.ItemId, tree.querySelector('[data-root="' + l.ItemId + '"]'), globe); });
+    }
+
+    function updateStatus(box, globe) {
+        var s = status[globe.Id];
+        box.querySelector('.glGlobeSummary').textContent = summaryText(globe);
+        box.querySelector('.glStatusLine').textContent = statusText(globe);
+        box.querySelector('.glProgress').style.visibility = s && s.State === 'building' ? 'visible' : 'hidden';
+        box.querySelector('.glProgress > div').style.width = (s && s.State === 'building' ? s.Percent : 0) + '%';
+    }
+
+    function renderGlobes() {
+        var list = $('glGlobes');
+        list.innerHTML = globes.length ? globes.map(globeHtml).join('') : '<div class="glEmpty">No globe yet. "Create Globe" adds one.</div>';
+        list.querySelectorAll('.glGlobe').forEach(function (box) {
+            var globe = globeOf(box).globe;
+            field(box, 'BackdropMode').value = BACKDROP_MODES[globe.Backdrops] || 'custom';
+            field(box, 'DiscMode').value = BACKDROP_MODES[globe.Discs] || 'custom';
+            field(box, 'Descending').value = String(!!globe.Descending);
+            field(box, 'BlackBars').value = String(globe.BlackBars !== false);
+            ['Media', 'FolderMode', 'PictureFit', 'MaxRating', 'Reshuffle', 'Start', 'Versions', 'CoverFit'].forEach(function (name) {
+                var select = field(box, name);
+                if ([].some.call(select.options, function (o) { return o.value === globe[name]; })) select.value = globe[name];
+            });
+            updateGlobe(box, globe);
+        });
+        fillOpening($('OpeningGlobe').value);
+        updateGeneral();
+        $('glDeleteAll').disabled = !globes.length;
+        $('glUpdateAll').disabled = !globes.length;
+    }
+
+    $('glGlobes').addEventListener('click', function (e) {
+        var header = e.target.closest('.glGlobeHeader');
+        if (header) {
+            var open = header.getAttribute('aria-expanded') !== 'true';
+            header.setAttribute('aria-expanded', String(open));
+            header.nextElementSibling.hidden = !open;
+            return;
+        }
+        var opener = e.target.closest('[data-open]');
+        if (opener) {
+            var children = opener.parentNode.nextElementSibling, expand = opener.getAttribute('aria-expanded') !== 'true';
+            opener.setAttribute('aria-expanded', String(expand));
+            children.hidden = !expand;
+            if (expand && !children.dataset.loaded) {
+                children.dataset.loaded = '1';
+                loadFolders(opener.dataset.open, opener.dataset.owner, children, globeOf(opener).globe);
+            }
+            return;
+        }
+        var button = e.target.closest('[data-action]');
+        if (!button || !loaded) return;
+        var found = globeOf(button);
+        if (button.dataset.action === 'update') {
+            ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('Globe/Update/' + found.globe.Id) }).then(pollStatus, function () {
+                Dashboard.alert('The globe is not saved yet. Click "Save" first.');
+            });
+        } else if (button.dataset.action === 'delete') {
+            confirmThen('Delete globe "' + found.globe.Name + '"?', function () {
+                var rest = globes.filter(function (g) { return g !== found.globe; });
+                var problem = saveProblem(rest);
+                if (problem) { message('glSaveStatus', problem, false); return; }
+                globes = rest;
+                save();
+            });
+        }
+    });
+
+    function changed(e) {
+        if (!loaded || !e.target.closest('.glGlobe')) return;
+        var found = globeOf(e.target);
+        if (e.type === 'input' && e.target.dataset.field === 'Name') found.globe.nameTyped = true;
+        if (e.type === 'change' && e.target.dataset.folder) {
+            var id = e.target.dataset.folder;
+            found.globe.Folders = found.globe.Folders.filter(function (f) { return f !== id; }).concat(e.target.checked ? [id] : []);
+        }
+        readGlobe(found.box, found.globe);
+        updateGlobe(found.box, found.globe);
+        if (e.target.dataset.field === 'AutoUpdate') updateGeneral();
+    }
+    $('glGlobes').addEventListener('input', changed);
+    $('glGlobes').addEventListener('change', changed);
+
+    $('glCreate').addEventListener('click', function () {
+        if (!loaded) return;
+        var globe = JSON.parse(JSON.stringify(GLOBE_DEFAULTS));
+        globe.Id = newId();
+        globe.Libraries = libraries.filter(function (l) { return l.CollectionType === 'movies'; }).slice(0, 1).map(function (l) { return l.ItemId; });
+        // A new globe follows the master switch when every globe is ticked.
+        globe.AutoUpdate = $('glAutoAll').checked;
+        globes.push(globe);
+        globe.Name = suggestName(globe);
+        renderGlobes();
+        var box = $('glGlobes').querySelector('[data-globe="' + globe.Id + '"]');
+        box.querySelector('.glGlobeHeader').click();
+        message('glSaveStatus', 'New globe added. Click "Save" to build it.', true);
+    });
+
+    $('glUpdateAll').addEventListener('click', function () {
+        if (!loaded) return;
+        ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('Globe/Update') }).then(pollStatus);
+    });
+
+    $('glDeleteAll').addEventListener('click', function () {
+        if (!loaded || !globes.length) return;
+        confirmThen('Delete all ' + globes.length + ' globes?', function () { globes = []; save(); });
+    });
+
+    $('glCompact').addEventListener('click', function () {
+        ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('Globe/Compact') }).then(function () {
+            message('glSaveStatus', 'Compacting runs as the task Compact Globe Storage.', true);
+            setTimeout(pollStatus, 2000);
+        });
+    });
+    $('glDeleteOld').addEventListener('click', function () {
+        confirmThen('Delete Globe\'s data in the old folder for good?', function () {
+            ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('Globe/DeleteOldFolder') }).then(pollStatus, function () {
+                Dashboard.alert('The old folder could not be cleaned up.');
+            });
+        });
+    });
+
+    // Jellyfin's own confirm dialog (utils/dashboard.js, kept on window.Dashboard for plugin pages).
+    function confirmThen(text, action) {
+        Dashboard.confirm(text, 'Globe', function (ok) { if (ok) action(); });
+    }
+
+    // Status, sizes and storage while builds run
+    function pollStatus() {
+        if (polling) return;
+        var tick = function () {
+            ApiClient.getJSON(ApiClient.getUrl('Globe/Status')).then(function (result) {
+                defaultFolder = result.defaultDataFolder || defaultFolder;
+                $('DataFolder').placeholder = defaultFolder;
+                status = {};
+                sizes = {};
+                result.globes.forEach(function (g) { status[g.id] = g.status; sizes[g.id] = { bytes: g.bytes, ownBytes: g.ownBytes }; missing[g.id] = g.bridgeMissing; });
+                $('glGlobes').querySelectorAll('.glGlobe').forEach(function (box) { updateStatus(box, globeOf(box).globe); });
+                var store = gigabytes(result.storeBytes) + ', ' + gigabytes(result.freeBytes) + ' of it free';
+                $('glStoreLine').textContent = store;
+                $('glTotalLine').textContent = 'All globe data: ' + store + (result.dataFolder ? ' in ' + result.dataFolder : '');
+                $('glCompact').disabled = !result.freeBytes;
+                $('glOldRow').hidden = !result.oldDataFolder;
+                $('glOldLine').textContent = result.oldDataFolder || '';
+                $('glFolderDesc').textContent = result.folderProblem
+                    || 'An empty folder or one with Globe\'s data, empty for Jellyfin\'s metadata folder.';
+                $('glFolderDesc').classList.toggle('glError', !!result.folderProblem);
+                var ticked = globes.some(function (g) { return g.AutoUpdate; });
+                $('glAutoDesc').textContent = ticked && !result.hasSchedule
+                    ? 'No schedule is set for the task Build Globe in Scheduled Tasks, so nothing updates by itself.'
+                    : 'Ticks or clears Update Automatically on every globe at once.';
+                var running = result.globes.some(function (g) { return g.status.State === 'building' || g.status.State === 'waiting'; });
+                polling = running && page.isConnected && !page.classList.contains('hide') ? setTimeout(function () { polling = null; tick(); }, 2000) : null;
+            }, function () { polling = null; });
+        };
+        polling = true;
+        tick();
+    }
+    page.addEventListener('pagehide', function () { if (polling && polling !== true) clearTimeout(polling); polling = null; });
+
+    // Load and save
+    function load() {
+        loaded = false;
+        Dashboard.showLoadingMsg();
+        Promise.all([
+            ApiClient.getPluginConfiguration(GlobeConfig.pluginUniqueId),
+            ApiClient.getVirtualFolders(),
+            ApiClient.getJSON(ApiClient.getUrl('Localization/ParentalRatings')),
+            ApiClient.getJSON(ApiClient.getUrl('Globe/Status'))
+        ]).then(function (results) {
+            var config = results[0];
+            gamesLibrary = results[3].gamesLibrary || '';
+            // The games library is offered only with Playnite Bridge, which names it.
+            libraries = results[1].filter(function (l) {
+                if (gamesLibrary && l.ItemId === gamesLibrary) { l.CollectionType = 'games'; return true; }
+                return !l.CollectionType || SORTS[l.CollectionType];
+            });
+            $('glGameRow').hidden = !gamesLibrary;
+            // Ratings without a value ("Unrated") cannot be a limit.
+            ratings = (results[2] || []).filter(function (r) { return r.Value != null || r.RatingScore; });
+            globes = (config.Globes || []).map(function (g) { var copy = Object.assign({}, GLOBE_DEFAULTS, g); copy.nameTyped = true; return copy; });
+            Object.keys(GL_FIELDS).forEach(function (id) { if (id !== 'OpeningGlobe') setField(id, config[id]); });
+            savedFolder = config.DataFolder || '';
+            renderGlobes();
+            fillOpening(config.OpeningGlobe || '');
+            updateGeneral();
+            loaded = true;
+            Dashboard.hideLoadingMsg();
+            pollStatus();
+        }, function () {
+            Dashboard.hideLoadingMsg();
+            Dashboard.alert('Loading the settings failed.');
+        });
+    }
+    page.addEventListener('pageshow', load);
+
+    function saveProblem(list) {
+        var seen = {}, ids = {};
+        for (var i = 0; i < list.length; i++) {
+            var key = list[i].Name.trim().toLowerCase();
+            if (seen[key]) return 'Two globes are called "' + list[i].Name + '". Every globe needs its own name.';
+            if (ids[list[i].Id]) return 'The globes "' + list[i].Name + '" and "' + ids[list[i].Id] + '" have the same id, import a code without this double.';
+            seen[key] = true;
+            ids[list[i].Id] = list[i].Name;
+            if (!BACKDROP_CHOICE.test(list[i].Backdrops)) return 'The backdrop numbers of "' + list[i].Name + '" are not valid, write them like 2-5, 8.';
+            if (!BACKDROP_CHOICE.test(list[i].Discs)) return 'The disc numbers of "' + list[i].Name + '" are not valid, write them like 2-5, 8.';
+        }
+        return null;
+    }
+
+    // A new data folder is checked first: it has to be empty or already hold Globe's data of this server.
+    function checkFolder() {
+        var wanted = getField('DataFolder');
+        if (wanted === savedFolder) return Promise.resolve(null);
+        return ApiClient.getJSON(ApiClient.getUrl('Globe/CheckFolder', { path: wanted })).then(function (r) { return r.problem; });
+    }
+
+    function save() {
+        if (!loaded) return;
+        var problem = saveProblem(globes);
+        if (problem) { message('glSaveStatus', problem, false); return; }
+        checkFolder().then(function (folderProblem) {
+            if (folderProblem) { message('glSaveStatus', folderProblem, false); return; }
+            Dashboard.showLoadingMsg();
+            // Every field of the stored configuration stays unless this page sets it, so nothing hidden is lost.
+            ApiClient.getPluginConfiguration(GlobeConfig.pluginUniqueId).then(function (config) {
+                Object.keys(GL_FIELDS).forEach(function (id) { config[id] = getField(id); });
+                if (config.OpeningGlobe && !globes.some(function (g) { return g.Id === config.OpeningGlobe; })) config.OpeningGlobe = '';
+                var stored = {};
+                (config.Globes || []).forEach(function (g) { stored[g.Id] = g; });
+                config.Globes = globes.map(function (g) {
+                    var copy = Object.assign({}, stored[g.Id] || {}, g);
+                    delete copy.nameTyped;
+                    return copy;
+                });
+                return ApiClient.updatePluginConfiguration(GlobeConfig.pluginUniqueId, config);
+            }).then(function (result) {
+                Dashboard.processPluginConfigurationUpdateResult(result);
+                savedFolder = getField('DataFolder');
+                globes.forEach(function (g) { g.nameTyped = true; });
+                message('glSaveStatus', '', true);
+                renderGlobes();
+                setTimeout(pollStatus, 500);
+            }, function () {
+                Dashboard.hideLoadingMsg();
+                Dashboard.alert('Saving the settings failed.');
+            });
+        });
+    }
+
+    $('GlobeConfigForm').addEventListener('submit', function (e) { e.preventDefault(); save(); return false; });
+
+    page.querySelector('[data-restore="general"]').addEventListener('click', function () {
+        if (!loaded) return;
+        Object.keys(GL_FIELDS).forEach(function (id) { setField(id, GL_FIELDS[id].def); });
+        updateGeneral();
+    });
+
+    // Backup / restore via code
+    $('glGenerate').addEventListener('click', function () {
+        if (!loaded) return;
+        var data = {};
+        Object.keys(GL_FIELDS).forEach(function (id) { data[id] = getField(id); });
+        data.Globes = globes.map(function (g) { var copy = Object.assign({}, g); delete copy.nameTyped; return copy; });
+        $('glCode').value = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+        $('glCopy').disabled = false;
+        message('glBackupStatus', 'Backup code generated.', true);
+    });
+    $('glCopy').addEventListener('click', function () {
+        var box = $('glCode');
+        box.focus();
+        box.select();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(box.value).then(function () { message('glBackupStatus', 'Copied to clipboard!', true); },
+                function () { message('glBackupStatus', 'Could not copy automatically — the text is selected, press Ctrl+C.', false); });
+        } else {
+            message('glBackupStatus', 'The text is selected — press Ctrl+C to copy.', true);
+        }
+    });
+    $('glImport').addEventListener('click', function () {
+        if (!loaded) return;
+        var raw = $('glCode').value.trim();
+        if (!raw) { message('glBackupStatus', 'Paste a code first.', false); return; }
+        var data;
+        try {
+            data = JSON.parse(decodeURIComponent(escape(atob(raw))));
+        } catch (e) {
+            message('glBackupStatus', 'Invalid code — it could not be read. Check that it was copied in full.', false);
+            return;
+        }
+        if (!data || typeof data !== 'object') { message('glBackupStatus', 'Invalid code — unexpected format.', false); return; }
+        var applied = 0;
+        Object.keys(data).forEach(function (id) { if (GL_FIELDS[id] && id !== 'OpeningGlobe') { setField(id, data[id]); applied++; } });
+        var missing = 0, folders = [];
+        if (Array.isArray(data.Globes)) {
+            globes = data.Globes.map(function (g) {
+                var copy = Object.assign({}, GLOBE_DEFAULTS, g);
+                // The id names the globe's folder on the server, so only an id the page itself would make is kept.
+                if (!/^[0-9a-f]{32}$/.test(copy.Id)) copy.Id = newId();
+                copy.nameTyped = true;
+                return copy;
+            });
+            globes.forEach(function (g) {
+                missing += g.Libraries.filter(function (id) { return !libraryOf(id); }).length;
+                g.Folders.forEach(function (f) { if (libraryOf(f.split(':')[0])) folders.push(f.split(':')[1]); });
+            });
+            applied += globes.length;
+            renderGlobes();
+        }
+        if (data.OpeningGlobe != null) setField('OpeningGlobe', data.OpeningGlobe);
+        updateGeneral();
+        // Folders of a library that is here can still be gone; each is asked for once.
+        Promise.all(folders.map(function (id) {
+            return ApiClient.getItem(ApiClient.getCurrentUserId(), id).then(function () { return 0; }, function () { return 1; });
+        })).then(function (gone) {
+            var lost = gone.reduce(function (a, b) { return a + b; }, 0);
+            var parts = [];
+            if (missing) parts.push(missing + (missing === 1 ? ' library is' : ' libraries are') + ' not on this server');
+            if (lost) parts.push(lost + (lost === 1 ? ' folder is' : ' folders are') + ' gone');
+            message('glBackupStatus', parts.length
+                ? 'Imported ' + applied + ' settings, but ' + parts.join(' and ') + ', choose them again.'
+                : 'Imported ' + applied + ' settings. Click "Save" to keep them.', !parts.length);
+        });
+    });
+    $('glSaveAll').addEventListener('click', function () {
+        if (!loaded) return;
+        message('glBackupStatus', 'Saved ' + (Object.keys(GL_FIELDS).length + globes.length) + ' settings', true);
+        save();
+    });
+})();
+</script>
+</div>
+</body>
+</html>
