@@ -92,7 +92,7 @@ The header button and the layer are added to Jellyfin Web through the File Trans
 
 All globes share one image store. Every picture is prepared once in three sizes and kept in a file per artwork type; a globe only points into it. Two globes with the same posters need the room for those posters once.
 
-When a globe is deleted, its pictures are freed and their room is used again by the next pictures. **Compact** writes the store close without the freed room.
+When a globe is deleted, its pictures are freed and their room is used again by the next pictures. **Compact** rewrites the store without the freed room.
 
 ---
 
@@ -337,7 +337,7 @@ Other versions may work but are not tested and could lead to unexpected behavior
 ## Credits
 
 - [three.js](https://threejs.org) (revision 160), by the three.js authors, MIT License
-- Jellyfin logo on the poles: from the [Jellyfin](https://jellyfin.org) project
+- Jellyfin logo on the poles: [Jellyfin artwork](https://github.com/jellyfin/jellyfin-ux), CC BY-SA 4.0
 - Movie, series, game and photo artwork belongs to its respective owners
 
 ---
