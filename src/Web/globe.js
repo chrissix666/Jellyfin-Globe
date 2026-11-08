@@ -12,7 +12,7 @@ const FADE = 0.25, MAX_FLIGHT = 6;
 const FETCH_PX = 110, SHOW_FROM = 100, SHOW_FULL = 150;   // tile height on screen in pixels
 const LOGO_UV = [0.4991, 0.4145], LOGO_UV_R = 0.5836, LOGO_R = 0.45;
 
-export async function createGlobe(container, { base, globeId, color = '#000000', headers = {}, onPlay = () => {}, onSnap = () => {}, onMove = () => {} }) {
+export async function createGlobe(container, { base, globeId, color = '#000000', startView = 'Side', headers = {}, onPlay = () => {}, onSnap = () => {}, onMove = () => {} }) {
   const dataUrl = `${base}data/${globeId}/`;
   const getJson = async name => {
     const response = await fetch(dataUrl + name, { headers });
@@ -90,7 +90,10 @@ export async function createGlobe(container, { base, globeId, color = '#000000',
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.00005, 100);
-  const startLat = layout.startRing === Math.floor((R - 1) / 2) ? 0 : Math.min(-Math.PI / 2 + (layout.startRing + 0.5) * H, THREE.MathUtils.degToRad(80));
+  // The opening view: from the side, on the first title's ring, or onto a pole.
+  const firstLat = layout.startRing === Math.floor((R - 1) / 2) ? 0 : -Math.PI / 2 + (layout.startRing + 0.5) * H;
+  const startLat = THREE.MathUtils.clamp({ Side: 0, Above: Math.PI / 2, Below: -Math.PI / 2 }[startView] ?? firstLat,
+    THREE.MathUtils.degToRad(-80), THREE.MathUtils.degToRad(80));
   camera.position.set(0, Math.sin(startLat), Math.cos(startLat)).multiplyScalar(3.2);
   camera.lookAt(0, 0, 0);
 

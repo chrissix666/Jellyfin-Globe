@@ -248,7 +248,7 @@
       const { createGlobe } = await import(base + 'globe.js');
       if (ticket !== opening) return;
       const created = await createGlobe(layer, {
-        base, globeId: entry.id, color: entry.color, headers, onPlay: onTile,
+        base, globeId: entry.id, color: entry.color, startView: entry.startView, headers, onPlay: onTile,
         onSnap: snap => playAnimation(entry, snap), onMove: stopAnimation,
       });
       if (ticket !== opening) { created.dispose(); return; }

@@ -112,7 +112,7 @@ public static class GlobeBuilder
 
         progress(75, "layout");
         var layout = Mosaic.Build(tiles.Select(t => new MosaicTile(t.Image.Kind.Aspect, t.Cluster)).ToList(),
-            string.Equals(globe.Start, "NorthPole", StringComparison.OrdinalIgnoreCase));
+            globe.Start is "NorthPole" or "SouthPole" ? globe.Start : "Front");
 
         var building = folder + ".building";
         if (Directory.Exists(building))

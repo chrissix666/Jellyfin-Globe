@@ -82,8 +82,11 @@ public class GlobeDefinition
 
     public bool Descending { get; set; }
 
-    /// <summary>"Front" (in front on the equator) or "NorthPole".</summary>
+    /// <summary>Where the order begins: "Front" (in front on the equator), "NorthPole" or "SouthPole".</summary>
     public string Start { get; set; } = "Front";
+
+    /// <summary>How the globe is seen on opening: "Side", "FirstTitle", "Above" or "Below".</summary>
+    public string StartView { get; set; } = "Side";
 
     /// <summary>With Random: keep the tiles of a title together.</summary>
     public bool Cluster { get; set; } = true;

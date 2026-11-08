@@ -70,6 +70,7 @@ public class GlobeController : ControllerBase
                 id = g.Id,
                 name = g.Name,
                 color = g.Color,
+                startView = g.StartView,
                 state = status.State,
                 percent = Math.Round(status.Percent),
                 ready = Service.IsBuilt(g.Id),

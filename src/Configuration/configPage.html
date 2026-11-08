@@ -259,7 +259,7 @@
     var GLOBE_DEFAULTS = { Libraries: [], Folders: [], FolderMode: 'Only', Media: 'Both', ArtworkTypes: ['Poster'], IncludeChildren: false,
         CollectionTitlesAlone: false, Backdrops: '1', Sort: 'SortName', Descending: false, Start: 'Front', Cluster: true, Reshuffle: 'Automatic',
         MaxRating: '', LeaveOutUnrated: false, BlackBars: true, PictureFit: 'Adaptive', CropLimit: 15, CoverFit: 'Crop', Versions: 'Main',
-        KeepVersionsTogether: true, Discs: '1', AutoUpdate: false, Color: '#000000' };
+        KeepVersionsTogether: true, Discs: '1', StartView: 'Side', AutoUpdate: false, Color: '#000000' };
     var ARTWORK = [['Poster', 'Poster'], ['Backdrop', 'Backdrop'], ['Thumb', 'Thumb'], ['Logo', 'Logo'], ['Clearart', 'Clearart'], ['Banner', 'Banner'], ['Disc', 'Disc']];
     var BACKDROP_MODES = { '1': 'main', '1-': 'all', '2-': 'others' };
     var BACKDROP_CHOICE = /^\s*\d+(-\d*)?(\s*,\s*\d+(-\d*)?)*\s*$/;
@@ -446,7 +446,9 @@
             + check('Cluster', g.Cluster, 'Cluster', 'With Random: the artwork of a title stays together.', 'cluster')
             + choose('Reshuffle', [['Automatic', 'On the Automatic Update'], ['Always', 'On Every Update'], ['Never', 'Never']], 'Reshuffle',
                 'When a random globe is mixed anew even though its titles stayed the same.', 'reshuffle')
-            + choose('Start', [['Front', 'In Front'], ['NorthPole', 'North Pole']], 'Start', 'Where the first title sits, in the middle of the screen or at the top of the globe.')
+            + choose('Start', [['Front', 'In Front'], ['NorthPole', 'North Pole'], ['SouthPole', 'South Pole']], 'Start', 'Where the order begins: in front on the equator, at the north pole or at the south pole.')
+            + choose('StartView', [['Side', 'Side'], ['FirstTitle', 'On the First Title'], ['Above', 'From Above'], ['Below', 'From Below']], 'Start View',
+                'How the globe is seen on opening, from the side, on the first title, from above or from below.')
             + '<div class="glRow"><label class="glRowLabel">Color</label><input type="color" class="glColor" data-field="Color" value="' + escapeHtml(g.Color || '#000000') + '">'
             + '<div class="glDesc">Background and globe colour that shows through transparent artwork.</div></div>'
             + check('AutoUpdate', g.AutoUpdate, 'Update Automatically', 'The task Build Globe checks this globe at the times set in Scheduled Tasks.')
@@ -475,7 +477,7 @@
         globe.ArtworkTypes = [].filter.call(box.querySelectorAll('[data-artwork]'), function (c) { return c.checked; }).map(function (c) { return c.dataset.artwork; });
         ['IncludeChildren', 'CollectionTitlesAlone', 'LeaveOutUnrated', 'Cluster', 'AutoUpdate', 'KeepVersionsTogether'].forEach(function (name) { globe[name] = field(box, name).checked; });
         globe.BlackBars = field(box, 'BlackBars').value === 'true';
-        ['Media', 'FolderMode', 'PictureFit', 'MaxRating', 'Sort', 'Reshuffle', 'Start', 'Color', 'Versions', 'CoverFit'].forEach(function (name) { globe[name] = field(box, name).value; });
+        ['Media', 'FolderMode', 'PictureFit', 'MaxRating', 'Sort', 'Reshuffle', 'Start', 'StartView', 'Color', 'Versions', 'CoverFit'].forEach(function (name) { globe[name] = field(box, name).value; });
         var discMode = field(box, 'DiscMode').value;
         globe.Discs = discMode === 'custom' ? field(box, 'DiscNumbers').value.trim() : Object.keys(BACKDROP_MODES).filter(function (k) { return BACKDROP_MODES[k] === discMode; })[0];
         var cropLimit = parseInt(field(box, 'CropLimit').value, 10);
@@ -571,7 +573,7 @@
             field(box, 'DiscMode').value = BACKDROP_MODES[globe.Discs] || 'custom';
             field(box, 'Descending').value = String(!!globe.Descending);
             field(box, 'BlackBars').value = String(globe.BlackBars !== false);
-            ['Media', 'FolderMode', 'PictureFit', 'MaxRating', 'Reshuffle', 'Start', 'Versions', 'CoverFit'].forEach(function (name) {
+            ['Media', 'FolderMode', 'PictureFit', 'MaxRating', 'Reshuffle', 'Start', 'StartView', 'Versions', 'CoverFit'].forEach(function (name) {
                 var select = field(box, name);
                 if ([].some.call(select.options, function (o) { return o.value === globe[name]; })) select.value = globe[name];
             });

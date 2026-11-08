@@ -42,7 +42,7 @@ public static class Mosaic
     /// <summary>At the end of a title a wider column may stay alone instead of taking a tile of the next title.</summary>
     public const double ClusterEndWidth = 2.0;
 
-    public static MosaicLayout Build(IReadOnlyList<MosaicTile> tiles, bool startAtNorthPole)
+    public static MosaicLayout Build(IReadOnlyList<MosaicTile> tiles, string startAt)
     {
         // The ring count only comes in whole steps, so with few tiles the rings would have to stretch a lot. Trying a
         // few column widths around the usual one finds a total width that matches a ring count almost exactly.
@@ -65,7 +65,7 @@ public static class Mosaic
 
         var total = widths.Sum();
         var capacity = Capacities(ringCount);
-        var order = RingOrder(ringCount, startAtNorthPole);
+        var order = RingOrder(ringCount, startAt);
 
         // Columns go to rings in visiting order: each ring gets the columns whose middle falls into its share of the
         // total width, so every ring is filled to about its own circumference.
@@ -104,7 +104,7 @@ public static class Mosaic
             // ring starts a little further round (steps of the golden ratio), so column edges never line up into a seam
             // from pole to pole.
             var offset = i == 0
-                ? (!startAtNorthPole && column > first ? -placed[first].Width / 2 : 0)
+                ? (startAt == "Front" && column > first ? -placed[first].Width / 2 : 0)
                 : i * 0.6180339887498949 % 1;
             var k = order[i];
             rings[k] = new MosaicRing(offset, first, column - first, width > 0 ? capacity[k] / width : 1);
@@ -167,12 +167,18 @@ public static class Mosaic
     public static int RingCount(double totalWidth) =>
         Enumerable.Range(3, 4000).MinBy(r => Math.Abs(Capacities(r).Sum() - totalWidth));
 
-    /// <summary>In front on the equator: the middle ring, then alternately below and above. At the north pole: top down.</summary>
-    public static int[] RingOrder(int ringCount, bool startAtNorthPole)
+    /// <summary>In front on the equator: the middle ring, then alternately below and above. At the north pole: top down; at
+    /// the south pole: bottom up.</summary>
+    public static int[] RingOrder(int ringCount, string start)
     {
-        if (startAtNorthPole)
+        if (start == "NorthPole")
         {
             return Enumerable.Range(1, ringCount - 2).Reverse().ToArray();
+        }
+
+        if (start == "SouthPole")
+        {
+            return Enumerable.Range(1, ringCount - 2).ToArray();
         }
 
         var middle = (ringCount - 1) / 2;
