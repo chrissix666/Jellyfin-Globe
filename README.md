@@ -1,9 +1,3 @@
-
-
-https://github.com/user-attachments/assets/db069aed-1a68-4361-bcca-64800ada8192
-
-
-
 [Jellyfin Projects](https://linktr.ee/JellyfinProjects) | [Kodi Projects](https://linktr.ee/KodiProjects)
 
 ---
@@ -69,6 +63,8 @@ A Jellyfin plugin that builds globes from your libraries. You choose the librari
 A button in Jellyfin's header opens the globe over the page. Turn it with the mouse, zoom in with the wheel until a single poster fills the screen, and double-click to open the title, play it or watch its trailer. With two or more globes a side menu switches between them.
 
 Movies, series, seasons, collections, home videos, photos, and with [Playnite Bridge](#games-with-playnite-bridge) also games.
+
+https://github.com/user-attachments/assets/db069aed-1a68-4361-bcca-64800ada8192
 
 ---
 
