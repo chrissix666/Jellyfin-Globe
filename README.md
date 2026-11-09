@@ -224,7 +224,7 @@ Every globe has its own settings on the **Globes** tab. Each row shows the globe
 
 ### Order
 
-- **Sort:** the sort options that all chosen libraries share (name, date added, release date, community rating, parental rating and the like), Random, and for home videos **Folder**: the folder tree as the Explorer shows it, every folder one patch with its subfolders around it.
+- **Sort:** the sort options that all chosen libraries share (name, date added, release date, community rating, parental rating and the like), Random, and for home videos **Folder**: the folder tree as the Explorer shows it; when all tiles share one shape, every folder grows as one patch with its subfolders around it.
 - **Sort Order:** ascending or descending; not with Random or Folder.
 - **Cluster:** with Random, the artwork of a title stays together, as one patch when all tiles share one shape.
 - **Reshuffle:** when a random globe is mixed anew although its titles stayed the same: on the automatic update (default), on every update, or never.
