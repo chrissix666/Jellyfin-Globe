@@ -33,11 +33,12 @@ public static class GlobeBuilder
     private const int TinyPages = 1;
     private const int SmallPages = 3;
     // Version of the data format; it is part of the fingerprint, so a new format rebuilds every globe.
-    private const int Version = 2;
+    private const int Version = 3;
 
     private const int SwapAttempts = 10;
 
-    private sealed record Tile(StoreImage Image, int Item, string ItemId, int Cluster);
+    // Folder: where the title's file lies, for the Folder sort.
+    private sealed record Tile(StoreImage Image, int Item, string ItemId, int Cluster, string Folder);
 
     public static BuildResult Build(
         GlobeDefinition globe,
@@ -65,7 +66,8 @@ public static class GlobeBuilder
         void Add(Title title, int cluster)
         {
             items.Add(new { id = title.Id, name = title.Name, type = title.Type });
-            tiles.AddRange(title.Images.Select(image => new Tile(image, items.Count - 1, title.Id, cluster)));
+            var folder = title.SortKeys.GetValueOrDefault("Path") is string path ? Path.GetDirectoryName(path) ?? string.Empty : string.Empty;
+            tiles.AddRange(title.Images.Select(image => new Tile(image, items.Count - 1, title.Id, cluster, folder)));
         }
 
         var isRandom = string.Equals(globe.Sort, "Random", StringComparison.OrdinalIgnoreCase);
@@ -108,11 +110,28 @@ public static class GlobeBuilder
             return new BuildResult(BuildOutcome.Empty, 0, unreadable.Count);
         }
 
-        var records = tiles.Select(t => store.TryGetRecord(t.Image, out var record) ? record : -1).ToArray();
-
         progress(75, "layout");
-        var layout = Mosaic.Build(tiles.Select(t => new MosaicTile(t.Image.Kind.Aspect, t.Cluster)).ToList(),
-            globe.Start is "NorthPole" or "SouthPole" ? globe.Start : "Front");
+        var start = globe.Start is "NorthPole" or "SouthPole" ? globe.Start : "Front";
+        MosaicLayout layout;
+        if (tiles.Select(t => t.Image.Kind.Aspect).Distinct().Count() == 1)
+        {
+            // One shape: the fixed grid, every tile the same size. Folders grow as patches round their parent folder, the
+            // pictures of a title with Random and Cluster as a patch of their own; anything else fills the rings in order.
+            var isFolder = globe.Sort == "Folder";
+            var groups = isFolder ? tiles.Select(t => t.Folder).ToList()
+                : isRandom && globe.Cluster ? tiles.Select(t => t.Cluster.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToList()
+                : null;
+            var (grid, order) = GridMosaic.Build(tiles.Count, tiles[0].Image.Kind.Aspect, start, groups,
+                group => isFolder && Path.GetDirectoryName(group) is { Length: > 0 } parent ? parent : null);
+            layout = grid;
+            tiles = order.Select(i => tiles[i]).ToList();
+        }
+        else
+        {
+            layout = Mosaic.Build(tiles.Select(t => new MosaicTile(t.Image.Kind.Aspect, t.Cluster)).ToList(), start);
+        }
+
+        var records = tiles.Select(t => store.TryGetRecord(t.Image, out var record) ? record : -1).ToArray();
 
         var building = folder + ".building";
         if (Directory.Exists(building))

@@ -361,9 +361,10 @@
 
   // Where the button goes: the legacy header, or the header of Jellyfin 12's modern layout, whose icons sit in a box beside
   // the user menu. There the button borrows the classes of the user menu button and the size of the icons beside it.
+  // The dashboard has a modern header with a user menu too, but no search: the button stays off it.
   function headerSlot() {
     const userMenu = document.querySelector('header.MuiAppBar-root [aria-controls="app-user-menu"]');
-    if (userMenu?.getClientRects().length) {
+    if (userMenu?.getClientRects().length && userMenu.closest('header').querySelector('a[href^="#/search"]')) {
       return { parent: userMenu.parentElement.previousElementSibling ?? userMenu.parentElement, className: userMenu.className, modern: true };
     }
     // Only a header that shows: during start-up the hidden legacy header is there before the modern one appears.

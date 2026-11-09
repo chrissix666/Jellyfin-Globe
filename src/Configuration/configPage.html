@@ -264,16 +264,16 @@
     var BACKDROP_MODES = { '1': 'main', '1-': 'all', '2-': 'others' };
     var BACKDROP_CHOICE = /^\s*\d+(-\d*)?(\s*,\s*\d+(-\d*)?)*\s*$/;
     // Jellyfin's sort options per library type (jellyfin-web movies.js, tvshows.js, moviecollections.js, list.js), without
-    // the ones by plays: a globe is a snapshot. Random is the plugin's own.
+    // the ones by plays: a globe is a snapshot. Random and Folder (the folder tree of home videos) are the plugin's own.
     var SORTS = {
         movies: ['SortName', 'CommunityRating', 'CriticRating', 'DateCreated', 'OfficialRating', 'PremiereDate', 'Runtime'],
         tvshows: ['SortName', 'CommunityRating', 'DateCreated', 'DateLastContentAdded', 'OfficialRating', 'PremiereDate'],
         boxsets: ['SortName', 'CommunityRating', 'DateCreated', 'OfficialRating', 'PremiereDate'],
-        homevideos: ['SortName', 'DateCreated', 'PremiereDate'],
+        homevideos: ['SortName', 'DateCreated', 'PremiereDate', 'Folder'],
         // The games of Playnite Bridge, sorted by Globe from the Bridge's fields.
         games: ['SortName', 'CommunityRating', 'DateCreated', 'OfficialRating', 'PremiereDate']
     };
-    var SORT_NAMES = { SortName: 'Name', Random: 'Random', CommunityRating: 'Community Rating', CriticRating: 'Critics Rating', DateCreated: 'Date Added',
+    var SORT_NAMES = { SortName: 'Name', Random: 'Random', Folder: 'Folder', CommunityRating: 'Community Rating', CriticRating: 'Critics Rating', DateCreated: 'Date Added',
         OfficialRating: 'Parental Rating', PremiereDate: 'Release Date', Runtime: 'Runtime', DateLastContentAdded: 'Date Episode Added' };
     var MEDIA_NAMES = { movies: 'Movies', tvshows: 'Series', boxsets: 'Collections', homevideos: 'Home Videos', games: 'Games' };
     // Artwork names for the suggested globe name, always English like this page.
@@ -441,7 +441,7 @@
                 'Titles above it stay out, and users with a maximum allowed parental rating see only globes within it.')
             + check('LeaveOutUnrated', g.LeaveOutUnrated, 'Leave Out Unrated', 'Titles without a parental rating stay off the globe.')
             + '<div class="glRow"><label class="glRowLabel">Sort</label><select class="glSelect" data-field="Sort"></select>'
-            + '<div class="glDesc">Jellyfin\'s sort options that all chosen libraries share, and Random.</div></div>'
+            + '<div class="glDesc">Jellyfin\'s sort options that all chosen libraries share, Random, and Folder for home videos.</div></div>'
             + choose('Descending', [['false', 'Ascending'], ['true', 'Descending']], 'Sort Order', 'The direction of the sort.', 'descending')
             + check('Cluster', g.Cluster, 'Cluster', 'With Random: the artwork of a title stays together.', 'cluster')
             + choose('Reshuffle', [['Automatic', 'On the Automatic Update'], ['Always', 'On Every Update'], ['Never', 'Never']], 'Reshuffle',
@@ -487,9 +487,10 @@
         globe.Descending = field(box, 'Descending').value === 'true';
     }
 
-    // Shows what depends on what: Sort options from the libraries, Cluster and Reshuffle only with Random, Sort Order and
-    // Start only without it, the backdrop numbers with "Chosen Numbers", folders, media and fit with a home video library,
-    // the crop limit with Adaptive, collection titles with children; a name the admin has not typed follows the settings.
+    // Shows what depends on what: Sort options from the libraries, Cluster and Reshuffle only with Random, Sort Order
+    // only without Random and Folder, Start only without Random, the backdrop numbers with "Chosen Numbers", folders,
+    // media and fit with a home video library, the crop limit with Adaptive, collection titles with children; a name the
+    // admin has not typed follows the settings.
     function updateGlobe(box, globe) {
         var sort = field(box, 'Sort'), wanted = sort.value || globe.Sort;
         var options = sortsFor(globe);
@@ -499,7 +500,8 @@
         var random = globe.Sort === 'Random', home = homeLibraries(globe).length > 0, games = !!gamesLibrary && globe.Libraries.indexOf(gamesLibrary) >= 0;
         box.querySelector('[data-row="cluster"]').classList.toggle('glFieldDisabled', !random);
         box.querySelector('[data-row="reshuffle"]').classList.toggle('glFieldDisabled', !random);
-        ['descending', 'start'].forEach(function (row) { box.querySelector('[data-row="' + row + '"]').classList.toggle('glFieldDisabled', random); });
+        box.querySelector('[data-row="descending"]').classList.toggle('glFieldDisabled', random || globe.Sort === 'Folder');
+        box.querySelector('[data-row="start"]').classList.toggle('glFieldDisabled', random);
         box.querySelector('[data-row="alone"]').classList.toggle('glFieldDisabled', !globe.IncludeChildren);
         box.querySelector('[data-row="backdrops"]').classList.toggle('glFieldDisabled', globe.ArtworkTypes.indexOf('Backdrop') < 0);
         field(box, 'BackdropNumbers').hidden = field(box, 'BackdropMode').value !== 'custom';

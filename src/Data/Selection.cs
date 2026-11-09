@@ -66,6 +66,12 @@ public static class Selection
             return all;
         }
 
+        // Folder (home videos): the folder tree as the Explorer shows it, a folder's own files before its subfolders.
+        if (globe.Sort == "Folder")
+        {
+            others = others.OrderBy(t => t.SortKeys.GetValueOrDefault("Path") as string ?? string.Empty, FolderOrder.Instance).ToList();
+        }
+
         // Only a globe of both is sorted here; Jellyfin's own order stays for the rest.
         return others.Count == 0 ? SortGames(games, globe) : games.Count == 0 ? others : Merge(others, SortGames(games, globe), globe);
     }
@@ -516,6 +522,7 @@ public static class Selection
                 ["PremiereDate"] = item.PremiereDate,
                 ["CommunityRating"] = item.CommunityRating is float community ? (double)community : null,
                 ["OfficialRating"] = rating is { } r ? r.Score * 1000 + r.Sub : null,
+                ["Path"] = item.Path,
             },
         };
 
@@ -588,5 +595,79 @@ public static class Selection
             var j = random.Next(i + 1);
             (list[i], list[j]) = (list[j], list[i]);
         }
+    }
+}
+
+/// <summary>
+/// Paths in the order of a walk through the folder tree: folder by folder, a folder's own files before its subfolders,
+/// names in natural order as the Explorer shows them (2 before 10, capitals and small letters alike).
+/// </summary>
+public sealed class FolderOrder : IComparer<string>
+{
+    public static readonly FolderOrder Instance = new();
+
+    public int Compare(string? x, string? y)
+    {
+        var a = (x ?? string.Empty).Split('\\', '/');
+        var b = (y ?? string.Empty).Split('\\', '/');
+        for (var i = 0; ; i++)
+        {
+            bool aFile = i == a.Length - 1, bFile = i == b.Length - 1;
+            if (aFile != bFile)
+            {
+                // One ends here with a file, the other goes on into a subfolder: the file comes first.
+                return aFile ? -1 : 1;
+            }
+
+            var result = Natural(a[i], b[i]);
+            if (result != 0 || aFile)
+            {
+                return result;
+            }
+        }
+    }
+
+    /// <summary>Digit runs compare by their value, the rest without regard to case; ties by the plain text.</summary>
+    public static int Natural(string a, string b)
+    {
+        int i = 0, j = 0;
+        while (i < a.Length && j < b.Length)
+        {
+            if (char.IsAsciiDigit(a[i]) && char.IsAsciiDigit(b[j]))
+            {
+                int si = i, sj = j;
+                while (i < a.Length && char.IsAsciiDigit(a[i]))
+                {
+                    i++;
+                }
+
+                while (j < b.Length && char.IsAsciiDigit(b[j]))
+                {
+                    j++;
+                }
+
+                var da = a[si..i].TrimStart('0');
+                var db = b[sj..j].TrimStart('0');
+                var byValue = da.Length != db.Length ? da.Length.CompareTo(db.Length) : string.CompareOrdinal(da, db);
+                if (byValue != 0)
+                {
+                    return byValue;
+                }
+            }
+            else
+            {
+                var byLetter = char.ToUpperInvariant(a[i]).CompareTo(char.ToUpperInvariant(b[j]));
+                if (byLetter != 0)
+                {
+                    return byLetter;
+                }
+
+                i++;
+                j++;
+            }
+        }
+
+        var byRest = (a.Length - i).CompareTo(b.Length - j);
+        return byRest != 0 ? byRest : string.CompareOrdinal(a, b);
     }
 }
