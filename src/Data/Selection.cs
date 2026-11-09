@@ -521,10 +521,12 @@ public static class Selection
 
         var opaque = ImagePreparation.Treatment(globe.BlackBars, "Crop", globe.CropLimit);
 
-        // Photos and home videos always come with their own picture, whatever artwork types are ticked.
+        // A photo always comes with its own picture, a home video with Poster ticked.
         if (item is Photo || item.GetType() == typeof(Video))
         {
-            var picture = item.GetImages(ImageType.Primary).FirstOrDefault(i => i.IsLocalFile && File.Exists(i.Path));
+            var picture = item is Photo || kinds.Contains(ArtworkKind.Poster)
+                ? item.GetImages(ImageType.Primary).FirstOrDefault(i => i.IsLocalFile && File.Exists(i.Path))
+                : null;
             if (picture is not null)
             {
                 var aspect = Aspect(picture);

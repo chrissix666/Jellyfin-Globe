@@ -240,7 +240,7 @@ Every globe has its own settings on the **Globes** tab. Each row shows the globe
 
 ## Home Videos and Photos
 
-For a home video library, a globe chooses **Videos**, **Photos** or both, and its folders: **Only Ticked Folders** or **All Except Ticked Folders**, at any depth. Every video and photo comes with its own picture, whatever artwork types are ticked, and fits its tile by **Picture Fit**. Photos turned by their camera keep their right orientation.
+For a home video library, a globe chooses **Videos**, **Photos** or both, and its folders: **Only Ticked Folders** or **All Except Ticked Folders**, at any depth. Every photo comes with its own picture, a video with **Poster** ticked, and each fits its tile by **Picture Fit**. Photos turned by their camera keep their right orientation.
 
 ---
 

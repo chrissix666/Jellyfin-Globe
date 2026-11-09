@@ -410,12 +410,12 @@
             + '<div class="glRow"><span class="glRowLabel">Libraries</span><div class="glCheckGroup">' + libs + '</div>'
             + '<div class="glDesc">The libraries whose titles the globe shows.</div></div>'
             + choose('Media', [['Both', 'Videos and Photos'], ['Videos', 'Videos'], ['Photos', 'Photos']], 'Home Videos',
-                'Which titles of the home video libraries come in, each with its own picture.', 'media')
+                'Which titles come in, a video brings its own picture only with Poster ticked.', 'media')
             + choose('FolderMode', [['Only', 'Only Ticked Folders'], ['Except', 'All Except Ticked Folders']], 'Folder Mode',
                 'Whether the ticked folders are the whole globe or the parts left out.', 'foldermode')
             + '<div class="glRow" data-row="folders"><span class="glRowLabel">Folders</span><div><div class="glUnit glTreeCount"></div><div class="glTree"></div></div>'
             + '<div class="glDesc glFolderDesc"></div></div>'
-            + '<div class="glRow"><span class="glRowLabel">Artwork Types</span><div class="glCheckGroup">' + types + '</div>'
+            + '<div class="glRow" data-row="artwork"><span class="glRowLabel">Artwork Types</span><div class="glCheckGroup">' + types + '</div>'
             + '<div class="glDesc">Each title brings the types it has.</div></div>'
             + check('IncludeChildren', g.IncludeChildren, 'Include Children', 'Seasons join their series and movies join their collection.')
             + check('CollectionTitlesAlone', g.CollectionTitlesAlone, 'Collection Titles Alone', 'With children, a movie of a collection also stands on its own.', 'alone')
@@ -442,11 +442,11 @@
             + check('LeaveOutUnrated', g.LeaveOutUnrated, 'Leave Out Unrated', 'Titles without a parental rating stay off the globe.')
             + '<div class="glRow"><label class="glRowLabel">Sort</label><select class="glSelect" data-field="Sort"></select>'
             + '<div class="glDesc">Jellyfin\'s sort options that all chosen libraries share, and Random.</div></div>'
-            + choose('Descending', [['false', 'Ascending'], ['true', 'Descending']], 'Sort Order', 'The direction of the sort.')
+            + choose('Descending', [['false', 'Ascending'], ['true', 'Descending']], 'Sort Order', 'The direction of the sort.', 'descending')
             + check('Cluster', g.Cluster, 'Cluster', 'With Random: the artwork of a title stays together.', 'cluster')
             + choose('Reshuffle', [['Automatic', 'On the Automatic Update'], ['Always', 'On Every Update'], ['Never', 'Never']], 'Reshuffle',
                 'When a random globe is mixed anew even though its titles stayed the same.', 'reshuffle')
-            + choose('Start', [['Front', 'In Front'], ['NorthPole', 'North Pole'], ['SouthPole', 'South Pole']], 'Start', 'Where the order begins: in front on the equator, at the north pole or at the south pole.')
+            + choose('Start', [['Front', 'In Front'], ['NorthPole', 'North Pole'], ['SouthPole', 'South Pole']], 'Start', 'Where the order begins: in front on the equator, at the north pole or at the south pole.', 'start')
             + choose('StartView', [['Side', 'Side'], ['FirstTitle', 'On the First Title'], ['Above', 'From Above'], ['Below', 'From Below']], 'Start View',
                 'How the globe is seen on opening, from the side, on the first title, from above or from below.')
             + '<div class="glRow"><label class="glRowLabel">Color</label><input type="color" class="glColor" data-field="Color" value="' + escapeHtml(g.Color || '#000000') + '">'
@@ -487,9 +487,9 @@
         globe.Descending = field(box, 'Descending').value === 'true';
     }
 
-    // Shows what depends on what: Sort options from the libraries, Cluster and Reshuffle with Random, the backdrop numbers
-    // with "Chosen Numbers", folders, media and fit with a home video library, the crop limit with Adaptive, collection
-    // titles with children; a name the admin has not typed follows the settings.
+    // Shows what depends on what: Sort options from the libraries, Cluster and Reshuffle only with Random, Sort Order and
+    // Start only without it, the backdrop numbers with "Chosen Numbers", folders, media and fit with a home video library,
+    // the crop limit with Adaptive, collection titles with children; a name the admin has not typed follows the settings.
     function updateGlobe(box, globe) {
         var sort = field(box, 'Sort'), wanted = sort.value || globe.Sort;
         var options = sortsFor(globe);
@@ -499,13 +499,18 @@
         var random = globe.Sort === 'Random', home = homeLibraries(globe).length > 0, games = !!gamesLibrary && globe.Libraries.indexOf(gamesLibrary) >= 0;
         box.querySelector('[data-row="cluster"]').classList.toggle('glFieldDisabled', !random);
         box.querySelector('[data-row="reshuffle"]').classList.toggle('glFieldDisabled', !random);
+        ['descending', 'start'].forEach(function (row) { box.querySelector('[data-row="' + row + '"]').classList.toggle('glFieldDisabled', random); });
         box.querySelector('[data-row="alone"]').classList.toggle('glFieldDisabled', !globe.IncludeChildren);
         box.querySelector('[data-row="backdrops"]').classList.toggle('glFieldDisabled', globe.ArtworkTypes.indexOf('Backdrop') < 0);
         field(box, 'BackdropNumbers').hidden = field(box, 'BackdropMode').value !== 'custom';
         ['media', 'foldermode', 'fit'].forEach(function (row) { box.querySelector('[data-row="' + row + '"]').hidden = !home; });
-        // Game rows only with the games library; with Random and without Cluster the versions are mixed anyway.
+        // Photos bring only their own picture, so with nothing but photos the artwork types do nothing.
+        box.querySelector('[data-row="artwork"]').classList.toggle('glFieldDisabled',
+            globe.Media === 'Photos' && home && homeLibraries(globe).length === globe.Libraries.length);
+        // Game rows only with the games library; with Random and without Cluster the versions are mixed anyway, with the main
+        // version alone there is nothing to keep together.
         ['versions', 'together', 'discs', 'coverfit'].forEach(function (row) { box.querySelector('[data-row="' + row + '"]').hidden = !games; });
-        box.querySelector('[data-row="together"]').classList.toggle('glFieldDisabled', random && !globe.Cluster);
+        box.querySelector('[data-row="together"]').classList.toggle('glFieldDisabled', (random && !globe.Cluster) || globe.Versions !== 'All');
         box.querySelector('[data-row="discs"]').classList.toggle('glFieldDisabled', globe.ArtworkTypes.indexOf('Disc') < 0);
         field(box, 'DiscNumbers').hidden = field(box, 'DiscMode').value !== 'custom';
         box.querySelector('[data-row="croplimit"]').hidden = !home && !games;
