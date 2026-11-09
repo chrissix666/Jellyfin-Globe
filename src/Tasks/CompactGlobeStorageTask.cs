@@ -9,7 +9,7 @@ namespace Jellyfin.Plugin.Globe.Tasks;
 /// <summary>Compacts the image store after globes were deleted; started from the admin page or the task list.</summary>
 public class CompactGlobeStorageTask : IScheduledTask
 {
-    public string Name => "Compact Globe Storage";
+    public string Name => "Compact Image Store";
 
     public string Key => "GlobeCompact";
 

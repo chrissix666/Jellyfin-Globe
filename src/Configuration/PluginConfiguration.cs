@@ -20,7 +20,7 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string HomeVideoAction { get; set; } = "Details";
 
-    /// <summary>Photos: "Details" or "Viewer" (Jellyfin's photo player).</summary>
+    /// <summary>Photos: "Details" or "Viewer" (Jellyfin's photo viewer).</summary>
     public string PhotoAction { get; set; } = "Viewer";
 
     /// <summary>Games of Playnite Bridge: "Details", "Play" or "OpenInPlaynite".</summary>

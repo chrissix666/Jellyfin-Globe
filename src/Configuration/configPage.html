@@ -132,7 +132,7 @@
 
     <div class="glTabPage" data-tabpage="general">
         <div class="glHeaderRow"><h3>General</h3>
-            <button type="button" is="emby-button" class="raised glActionButton emby-button" data-restore="general">Restore defaults</button></div>
+            <button type="button" is="emby-button" class="raised glActionButton emby-button" data-restore="general">Restore Defaults</button></div>
 
         <h3 class="glSubhead">Double-Click</h3>
         <div class="glRow"><label class="glRowLabel" for="MovieAction">Movie</label>
@@ -162,11 +162,11 @@
         <div class="glRow"><label class="glRowLabel" for="PhotoAction">Photo</label>
             <select id="PhotoAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
                 <option value="Viewer">Photo Viewer</option><option value="Details">Detail Page</option></select>
-            <div class="glDesc">Photo Viewer opens the picture in Jellyfin's photo player.</div></div>
+            <div class="glDesc">Photo Viewer opens the picture in Jellyfin's photo viewer.</div></div>
         <div class="glRow" id="glGameRow" hidden><label class="glRowLabel" for="GameAction">Game</label>
             <select id="GameAction" is="emby-select" class="emby-select-withcolor emby-select glSelect">
                 <option value="Details">Detail Page</option><option value="Play">Play</option><option value="OpenInPlaynite">Open in Playnite</option></select>
-            <div class="glDesc">Play starts or installs the game, and a globe's rating limit holds whatever the Bridge's settings.</div></div>
+            <div class="glDesc">Play starts or installs the game, and a globe's Highest Rating holds whatever the Bridge's settings.</div></div>
 
         <h3 class="glSubhead">Globes</h3>
         <div class="glRow"><label class="glRowLabel" for="OpeningGlobe">Globe on Opening</label>
@@ -180,13 +180,13 @@
             <div class="glDesc" id="glAutoDesc">Ticks or clears Update Automatically on every globe at once.</div></div>
         <div class="glRow glRowCheckbox"><span class="glRowLabel">Compact on Update</span>
             <div class="checkboxContainer"><label class="emby-checkbox-label"><input type="checkbox" id="CompactOnUpdate"><span></span></label></div>
-            <div class="glDesc">The automatic update compacts the stored images once a quarter of their space is free.</div></div>
+            <div class="glDesc">The automatic update compacts the image store once a quarter of it is free.</div></div>
 
         <h3 class="glSubhead">Storage</h3>
         <div class="glRow"><label class="glRowLabel" for="DataFolder">Data Folder</label>
             <input id="DataFolder" type="text" class="glText">
             <div class="glDesc" id="glFolderDesc">An empty folder or one with Globe's data (empty: metadata folder), after a change every globe is built anew.</div></div>
-        <div class="glRow"><span class="glRowLabel">Globe Data</span>
+        <div class="glRow"><span class="glRowLabel">Image Store</span>
             <div class="glNumberBox"><span class="glStatusLine" id="glStoreLine"></span>
                 <button type="button" is="emby-button" id="glCompact" class="raised glActionButton emby-button">Compact</button></div>
             <div class="glDesc">Compact frees the space of images no globe uses any more, it runs as a task.</div></div>
@@ -196,13 +196,13 @@
             <div class="glDesc">Deletes only Globe's own data there, for good and without the recycle bin.</div></div>
 
         <div class="glBackup">
-            <h3>Backup / restore via code</h3>
+            <h3>Backup / Restore via Code</h3>
             <textarea id="glCode" class="glCode" aria-label="Backup code" placeholder="Click &quot;Generate&quot; to create a backup code, or paste a previously saved one here to restore it."></textarea>
             <div class="glBackupButtons">
                 <button type="button" is="emby-button" id="glGenerate" class="block emby-button glAccentButton">Generate</button>
-                <button type="button" is="emby-button" id="glCopy" class="block emby-button glCopyButton" disabled>Copy to clipboard</button>
+                <button type="button" is="emby-button" id="glCopy" class="block emby-button glCopyButton" disabled>Copy to Clipboard</button>
                 <button type="button" is="emby-button" id="glImport" class="block emby-button glImportButton">Import</button>
-                <button type="button" is="emby-button" id="glSaveAll" class="block emby-button glAccentButton">Save all settings</button>
+                <button type="button" is="emby-button" id="glSaveAll" class="block emby-button glAccentButton">Save All Settings</button>
             </div>
             <div id="glBackupStatus" class="glMessage" role="status"></div>
         </div>
@@ -217,7 +217,7 @@
         <div class="glUnit" id="glTotalLine"></div>
         <div id="glGlobes"></div>
         <div class="glDangerBox">
-            <div class="glDangerTitle">Delete all globes</div>
+            <div class="glDangerTitle">Delete All Globes</div>
             <div class="glDangerDesc">Removes every globe and its data, delete here before uninstalling or the data stays in the data folder.</div>
             <button type="button" is="emby-button" id="glDeleteAll" class="raised glActionButton glDangerButton emby-button">Delete All</button>
         </div>
@@ -226,7 +226,7 @@
     <div class="glTabPage glCredits" data-tabpage="credits">
         <h3>Credits</h3>
         <p>The globe is drawn with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> (revision 160), by the three.js authors, under the MIT License.</p>
-        <p>The licence text comes with the plugin as LICENSE-three.txt.</p>
+        <p>The license text comes with the plugin as LICENSE-three.txt.</p>
     </div>
 
     <div id="glSaveStatus" class="glMessage" role="status"></div>
@@ -277,7 +277,7 @@
         OfficialRating: 'Parental Rating', PremiereDate: 'Release Date', Runtime: 'Runtime', DateLastContentAdded: 'Date Episode Added' };
     var MEDIA_NAMES = { movies: 'Movies', tvshows: 'Series', boxsets: 'Collections', homevideos: 'Home Videos', games: 'Games' };
     // Artwork names for the suggested globe name, always English like this page.
-    var NAME_WORDS = { Poster: 'Posters', Backdrop: 'Fanart', Thumb: 'Thumbs', Logo: 'Logos', Clearart: 'Clearart', Banner: 'Banners', Disc: 'Discs' };
+    var NAME_WORDS = { Poster: 'Posters', Backdrop: 'Backdrops', Thumb: 'Thumbs', Logo: 'Logos', Clearart: 'Clearart', Banner: 'Banners', Disc: 'Discs' };
 
     var libraries = [], ratings = [], globes = [], status = {}, sizes = {}, missing = {}, defaultFolder = '', savedFolder = '', gamesLibrary = '';
     var loaded = false, polling = null;
@@ -438,7 +438,7 @@
             + '<div class="glRow" data-row="croplimit"><label class="glRowLabel">Crop Limit</label><div class="glNumberBox"><input type="number" class="glNumber" data-field="CropLimit" min="0" max="50" value="' + (g.CropLimit != null ? g.CropLimit : 15) + '"><span class="glUnit">%</span></div>'
             + '<div class="glDesc">Adaptive crops a picture that loses at most this share and shows any other on the blurred fill.</div></div>'
             + choose('MaxRating', [['', 'No Limit']].concat(ratings.map(function (r) { return [r.Name, r.Name]; })), 'Highest Rating',
-                'Titles above it stay out, and users with a parental limit see only globes within it.')
+                'Titles above it stay out, and users with a maximum allowed parental rating see only globes within it.')
             + check('LeaveOutUnrated', g.LeaveOutUnrated, 'Leave Out Unrated', 'Titles without a parental rating stay off the globe.')
             + '<div class="glRow"><label class="glRowLabel">Sort</label><select class="glSelect" data-field="Sort"></select>'
             + '<div class="glDesc">Jellyfin\'s sort options that all chosen libraries share, and Random.</div></div>'
@@ -450,8 +450,8 @@
             + choose('StartView', [['Side', 'Side'], ['FirstTitle', 'On the First Title'], ['Above', 'From Above'], ['Below', 'From Below']], 'Start View',
                 'How the globe is seen on opening, from the side, on the first title, from above or from below.')
             + '<div class="glRow"><label class="glRowLabel">Color</label><input type="color" class="glColor" data-field="Color" value="' + escapeHtml(g.Color || '#000000') + '">'
-            + '<div class="glDesc">Background and globe colour that shows through transparent artwork.</div></div>'
-            + check('AutoUpdate', g.AutoUpdate, 'Update Automatically', 'The task Build Globe checks this globe at the times set in Scheduled Tasks.')
+            + '<div class="glDesc">Background and globe color that shows through transparent artwork.</div></div>'
+            + check('AutoUpdate', g.AutoUpdate, 'Update Automatically', 'The task Update Globes checks this globe at the times set in Scheduled Tasks.')
             + '<div class="glRow"><span class="glRowLabel">Status</span><div><div class="glStatusLine"></div><div class="glProgress"><div></div></div></div>'
             + '<div class="glDesc">Changed settings rebuild the globe after saving, images count its tiles and sizes each picture once.</div></div>'
             + '<div class="glGlobeButtons"><button type="button" is="emby-button" class="raised glActionButton emby-button" data-action="update">Update</button>'
@@ -669,7 +669,7 @@
 
     $('glCompact').addEventListener('click', function () {
         ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('Globe/Compact') }).then(function () {
-            message('glSaveStatus', 'Compacting runs as the task Compact Globe Storage.', true);
+            message('glSaveStatus', 'Compacting runs as the task Compact Image Store.', true);
             setTimeout(pollStatus, 2000);
         });
     });
@@ -699,7 +699,7 @@
                 $('glGlobes').querySelectorAll('.glGlobe').forEach(function (box) { updateStatus(box, globeOf(box).globe); });
                 var store = gigabytes(result.storeBytes) + ', ' + gigabytes(result.freeBytes) + ' of it free';
                 $('glStoreLine').textContent = store;
-                $('glTotalLine').textContent = 'All globe data: ' + store + (result.dataFolder ? ' in ' + result.dataFolder : '');
+                $('glTotalLine').textContent = 'Image store: ' + store + (result.dataFolder ? ' in ' + result.dataFolder : '');
                 $('glCompact').disabled = !result.freeBytes;
                 $('glOldRow').hidden = !result.oldDataFolder;
                 $('glOldLine').textContent = result.oldDataFolder || '';
@@ -708,7 +708,7 @@
                 $('glFolderDesc').classList.toggle('glError', !!result.folderProblem);
                 var ticked = globes.some(function (g) { return g.AutoUpdate; });
                 $('glAutoDesc').textContent = ticked && !result.hasSchedule
-                    ? 'No schedule is set for the task Build Globe in Scheduled Tasks, so nothing updates by itself.'
+                    ? 'No schedule is set for the task Update Globes in Scheduled Tasks, so nothing updates by itself.'
                     : 'Ticks or clears Update Automatically on every globe at once.';
                 var running = result.globes.some(function (g) { return g.status.State === 'building' || g.status.State === 'waiting'; });
                 polling = running && page.isConnected && !page.classList.contains('hide') ? setTimeout(function () { polling = null; tick(); }, 2000) : null;

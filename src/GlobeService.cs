@@ -50,7 +50,7 @@ public sealed class GlobeStatus
 
 /// <summary>
 /// Keeps the globes in step with the settings: builds new and changed globes one after the other, removes the data of
-/// deleted ones, and knows the status of each. The builds run inside the scheduled task "Build Globe", so they show up
+/// deleted ones, and knows the status of each. The builds run inside the scheduled task "Update Globes", so they show up
 /// with progress in Jellyfin's task list; Globe never sets that task's schedule, the admin does.
 /// </summary>
 public sealed class GlobeService : IHostedService
@@ -444,7 +444,7 @@ public sealed class GlobeService : IHostedService
     }
 
     /// <summary>
-    /// Compacts the image store (task "Compact Globe Storage"). It waits for builds and builds wait for it;
+    /// Compacts the image store (task "Compact Image Store"). It waits for builds and builds wait for it;
     /// the globes keep their layout and shuffle and only follow the moved records, and clients still on the old numbers
     /// are refused until they open the globe again.
     /// </summary>
@@ -810,7 +810,7 @@ public sealed class GlobeService : IHostedService
         }
     }
 
-    /// <summary>Whether Jellyfin's task list has a schedule for "Build Globe"; only read, Globe never sets one.</summary>
+    /// <summary>Whether Jellyfin's task list has a schedule for "Update Globes"; only read, Globe never sets one.</summary>
     public bool HasSchedule() =>
         _taskManager.ScheduledTasks.FirstOrDefault(t => t.ScheduledTask is BuildGlobeTask)?.Triggers.Count > 0;
 

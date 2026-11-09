@@ -3,7 +3,7 @@
     "guid": "b37f9bfa-5337-424d-adbc-114488b2190d",
     "name": "Globe",
     "description": "Shows the artwork of your libraries on globes you can turn and zoom; a double-click opens the title.",
-    "overview": "Builds globes from your libraries in the admin page: posters, backdrops, thumbs, logos, clearart, banners, discs, home videos and photos, each in its own shape, sorted or random, with rating limits per globe. A header button opens the globe over Jellyfin Web, turned and zoomed like a map; a double-click opens, plays or shows the title. Games from Playnite Bridge too. Requires the File Transformation plugin.",
+    "overview": "Builds globes from your libraries in the admin page: posters, backdrops, thumbs, logos, clearart, banners, discs, home videos and photos, each in its own shape, sorted or random, with a highest rating per globe. A header button opens the globe over Jellyfin Web, turned and zoomed like a map; a double-click opens, plays or shows the title. Games from Playnite Bridge too. Requires the File Transformation plugin.",
     "owner": "chrissix666",
     "category": "Experimental",
     "imageUrl": "https://raw.githubusercontent.com/chrissix666/Jellyfin-Globe/main/logo.png",
@@ -13,16 +13,16 @@
         "changelog": "Release for Jellyfin 12.0+",
         "targetAbi": "12.0.0.0",
         "sourceUrl": "https://github.com/chrissix666/Jellyfin-Globe/releases/download/v2.0.0.0/Globe_2.0.0.0_jellyfin-12.x.zip",
-        "checksum": "00ae424bf1060a08b2981348ac4ff708",
-        "timestamp": "2026-11-09T03:42:51Z"
+        "checksum": "bfd5304eb16f659b85b40d267f444b0e",
+        "timestamp": "2026-11-09T18:02:52Z"
       },
       {
         "version": "1.0.0.0",
         "changelog": "Release for Jellyfin 10.10.7",
         "targetAbi": "10.10.7.0",
         "sourceUrl": "https://github.com/chrissix666/Jellyfin-Globe/releases/download/v1.0.0.0/Globe_1.0.0.0_jellyfin-10.10.7.zip",
-        "checksum": "c3b41bbad30919fa38fc82dfce8ded3d",
-        "timestamp": "2026-11-09T03:42:51Z"
+        "checksum": "01f32e842bf1ee0927216a3e8929bf31",
+        "timestamp": "2026-11-09T18:02:52Z"
       }
     ]
   }

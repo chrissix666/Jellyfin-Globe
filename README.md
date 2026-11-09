@@ -84,7 +84,7 @@ It is not a player and not a library view. A double-click hands the title to Jel
 
 Globe is a native Jellyfin plugin.
 
-The server part is written in **C#**. It picks the titles of each globe through Jellyfin's own queries, prepares every picture once, lays out the sphere and stores the result. Building runs in Jellyfin's scheduled task **Build Globe**, with progress in the task list.
+The server part is written in **C#**. It picks the titles of each globe through Jellyfin's own queries, prepares every picture once, lays out the sphere and stores the result. Building runs in Jellyfin's scheduled task **Update Globes**, with progress in the task list.
 
 The globe itself is drawn in the browser with [three.js](https://threejs.org) and WebGL 2. The sphere is cut into rings, every ring into columns, every column into tiles. From far away the globe uses small compressed pages of all pictures; when you zoom in, the sharp pictures of the tiles in view are fetched in bundles.
 
@@ -156,7 +156,7 @@ The first build reads every picture once and can take a while for a large librar
 - **Close:** the X, Esc or Back.
 - **Switch globes:** the small tab below the X opens the side menu, with the build progress of each globe.
 
-The poles carry the Jellyfin logo on the globe's colour. When the detail page, the player or the photo viewer opens, the globe steps aside, and it comes back with the same view when you return.
+The poles carry the Jellyfin logo on the globe's color. When the detail page, the player or the photo viewer opens, the globe steps aside, and it comes back with the same view when you return.
 
 Animated artwork (animated WebP or GIF) is shown with its first frame on the globe. When the globe turns to such a tile and it is large enough, the animation plays over the tile until you turn away.
 
@@ -191,7 +191,7 @@ Play starts the title in Jellyfin's own player. Trailer plays the movie's own tr
 ### Storage
 
 - **Data Folder:** where the globes and the image store live. Empty means Jellyfin's metadata folder. The folder must be empty or already hold Globe's data of this server. After a change every globe is built anew in the new folder; the old folder stays until you delete it.
-- **Globe Data:** the size of all globe data and how much of it is free. **Compact** frees that room, as a task.
+- **Image Store:** the size of the image store and how much of it is free. **Compact** frees that room, as a task.
 - **Old Data Folder:** shown after a change of the data folder. **Delete** removes only Globe's own data there.
 
 ---
@@ -232,8 +232,8 @@ Every globe has its own settings on the **Globes** tab. Each row shows the globe
 
 ### Look and Updates
 
-- **Color:** the background and the colour that shows through transparent artwork.
-- **Update Automatically:** the task Build Globe checks this globe. Off by default.
+- **Color:** the background and the color that shows through transparent artwork.
+- **Update Automatically:** the task Update Globes checks this globe. Off by default.
 - **Update** and **Delete** per globe; **Update All** above the list.
 
 ---
@@ -253,7 +253,7 @@ With the Playnite Bridge plugin installed, its games library can go on a globe l
 - **Discs:** First Disc, All, All Except First or chosen numbers. Two disc files with the same picture count once. A movie keeps its one disc.
 - **Cover Fit:** see [Pictures](#pictures).
 - Game collections work like movie collections, with Include Children.
-- Rating limits hold for games too, by the strictest age rating of the game, whatever Playnite Bridge's own parental setting is.
+- **Highest Rating** holds for games too, by the strictest age rating of the game, whatever Playnite Bridge's own parental setting is.
 - A double-click on a game opens its detail page, starts or installs it, or opens it in Playnite, see [Double-Click](#double-click).
 
 Without Playnite Bridge the game settings are hidden. A globe with games keeps its games as built and says "Playnite Bridge missing" until the bridge is back.
@@ -264,8 +264,8 @@ Without Playnite Bridge the game settings are hidden. A globe with games keeps i
 
 Globe adds two scheduled tasks under Dashboard > Scheduled Tasks:
 
-- **Build Globe** runs the updates. Run by hand or by a schedule, it is the automatic update: it checks the globes with **Update Automatically** ticked. By default it has no schedule; set one there if you want globes to follow your libraries by themselves.
-- **Compact Globe Storage** compacts the image store.
+- **Update Globes** runs the updates. Run by hand or by a schedule, it is the automatic update: it checks the globes with **Update Automatically** ticked. By default it has no schedule; set one there if you want globes to follow your libraries by themselves.
+- **Compact Image Store** compacts the image store.
 
 An update builds a globe only when something changed: a title, a picture or a setting. Changed settings rebuild the globe after saving.
 
@@ -278,7 +278,7 @@ A globe never comes out empty by accident. When the folders of one of its librar
 Globe follows Jellyfin's parental controls per user:
 
 - A user sees a globe only when every library of it is visible to them.
-- A user with a parental limit sees only globes whose **Highest Rating** is within that limit.
+- A user with a maximum allowed parental rating sees only globes whose **Highest Rating** is within it.
 - A user who blocks unrated items sees only globes without such items, for example with **Leave Out Unrated**.
 - A user with blocked or allowed tags sees no globe.
 
@@ -292,15 +292,15 @@ Every setting lives under Dashboard > Plugins > Globe, in three tabs: General, G
 
 ### Restore Defaults
 
-The General tab has a **Restore defaults** button in the top right corner. It resets the general settings to their default values. Click **Save** afterwards to keep them.
+The General tab has a **Restore Defaults** button in the top right corner. It resets the general settings to their default values. Click **Save** afterwards to keep them.
 
 ### Backup and Restore (All)
 
-The General tab also includes a code-based backup system. **Generate** creates a compact code that represents your complete current settings, globes included, **Copy to clipboard** copies it. Store it somewhere safe. **Import** lets you paste that code back at any time to restore your full configuration, for example after a reinstall or when moving to a new server. After importing, click **Save all settings**. If a library or folder of the code is not on this server, the import says so, and you choose it again.
+The General tab also includes a code-based backup system. **Generate** creates a compact code that represents your complete current settings, globes included, **Copy to Clipboard** copies it. Store it somewhere safe. **Import** lets you paste that code back at any time to restore your full configuration, for example after a reinstall or when moving to a new server. After importing, click **Save All Settings**. If a library or folder of the code is not on this server, the import says so, and you choose it again.
 
 ### Uninstalling
 
-Uninstalling leaves the globe data in the data folder. To remove it too, click **Delete All** on the Globes tab before you uninstall.
+Uninstalling leaves Globe's data in the data folder. To remove it too, click **Delete All** on the Globes tab before you uninstall.
 
 ---
 

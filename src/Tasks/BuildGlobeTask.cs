@@ -10,7 +10,7 @@ namespace Jellyfin.Plugin.Globe.Tasks;
 /// list) is the automatic update of the globes with "update automatically" ticked.</summary>
 public class BuildGlobeTask : IScheduledTask
 {
-    public string Name => "Build Globe";
+    public string Name => "Update Globes";
 
     public string Key => "GlobeBuild";
 
