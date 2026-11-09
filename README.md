@@ -86,7 +86,7 @@ Globe is a native Jellyfin plugin.
 
 The server part is written in **C#**. It picks the titles of each globe through Jellyfin's own queries, prepares every picture once, lays out the sphere and stores the result. Building runs in Jellyfin's scheduled task **Update Globes**, with progress in the task list.
 
-The globe itself is drawn in the browser with [three.js](https://threejs.org) and WebGL 2. The sphere is cut into rings, every ring into columns, every column into tiles. From far away the globe uses small compressed pages of all pictures; when you zoom in, the sharp pictures of the tiles in view are fetched in bundles.
+The globe itself is drawn in the browser with [three.js](https://threejs.org) and WebGL 2. The sphere is cut into rings, every ring into columns, every column into tiles. When all tiles of a globe share one shape, every ring is cut into places of exactly that shape instead, so every tile is the same size. From far away the globe uses small compressed pages of all pictures; when you zoom in, the sharp pictures of the tiles in view are fetched in bundles.
 
 The header button and the layer are added to Jellyfin Web through the File Transformation plugin.
 
@@ -224,11 +224,12 @@ Every globe has its own settings on the **Globes** tab. Each row shows the globe
 
 ### Order
 
-- **Sort:** the sort options that all chosen libraries share (name, date added, release date, community rating, parental rating and the like), and Random.
-- **Sort Order:** ascending or descending.
-- **Cluster:** with Random, the artwork of a title stays together.
+- **Sort:** the sort options that all chosen libraries share (name, date added, release date, community rating, parental rating and the like), Random, and for home videos **Folder**: the folder tree as the Explorer shows it, every folder one patch with its subfolders around it.
+- **Sort Order:** ascending or descending; not with Random or Folder.
+- **Cluster:** with Random, the artwork of a title stays together, as one patch when all tiles share one shape.
 - **Reshuffle:** when a random globe is mixed anew although its titles stayed the same: on the automatic update (default), on every update, or never.
-- **Start:** the first title in the middle of the screen, or at the top of the globe.
+- **Start:** where the order begins: in front on the equator, at the north pole or at the south pole; not with Random.
+- **Start View:** how the globe is seen on opening: from the side (default), on the first title, from above or from below. It acts at once, without a new build.
 
 ### Look and Updates
 
