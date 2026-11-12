@@ -406,7 +406,7 @@
   // The header buttons of Random, Autoscroll, Fullscreen, Cinema Project and Destroy share one order: the one the admin set
   // in Essentials when it is installed, else this list. Each goes before the first button it does not know or that comes
   // later, so they line up whichever script runs first.
-  const HEADER_BUTTON_ORDER = ['randomMovieButton', 'jf-scroll-btn', 'jf-fullscreen-btn', 'jf-globe-btn', 'jf-cinema-btn', 'jf-destroy-btn'];
+  const HEADER_BUTTON_ORDER = ['randomMovieButton', 'jf-scroll-btn', 'jf-fullscreen-btn', 'jf-globe-btn', 'jf-destroy-btn', 'jf-cinema-btn'];
   function headerButtonRank(el) {
     const id = el.id === 'randomMovieButtonContainer' ? 'randomMovieButton' : el.id;
     return (window.JellyfinEssentials?.headerOrder || HEADER_BUTTON_ORDER).indexOf(id);
