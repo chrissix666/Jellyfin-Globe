@@ -1,5 +1,5 @@
 // Globe: a globe button in the header; a click covers the page with a layer in the globe's colour that shows the globe.
-// The layer has only an X; with two or more globes a small tab below it slides in a side menu to switch globes.
+// The layer has only an X; with two or more globes a globe button left of it slides in a side menu to switch globes.
 // X, Esc and Back close it (Esc closes an open menu first). A double-click does what the admin set for the title's media
 // type (detail page, play, trailer, photo viewer, a game's start). While Jellyfin shows the player or a page the layer is hidden, and it
 // comes back with the same view when Jellyfin returns to where it was opened.
@@ -23,8 +23,13 @@
     + '</svg></span>';
   const closeIcon = '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'
     + '<path d="M6 6l12 12M18 6L6 18"/></svg>';
-  const tabIcon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'
-    + '<path d="M15 6l-6 6 6 6"/></svg>';
+  // The X and the globe button of the layer: dimmed where a mouse can hover, bright on hover, on keyboard focus and while
+  // the menu is open; on touch screens as bright as ever, since nothing hovers there.
+  const layerButtonStyle = '.globeLayerButton{position:absolute;top:12px;z-index:4;display:flex;padding:6px;border:0;border-radius:50%;'
+    + 'background:rgba(0,0,0,.55);color:#fff;opacity:.85;cursor:pointer;transition:opacity .15s ease}'
+    + '.globeLayerButton svg{display:block;width:32px;height:32px}'
+    + '@media (hover:hover){.globeLayerButton{opacity:.45}.globeLayerButton:hover,.globeLayerButton[aria-expanded="true"]{opacity:1}}'
+    + '.globeLayerButton:focus-visible{opacity:1;outline:2px solid #fff;outline-offset:2px}';
 
   let config = null;       // ClientConfiguration of the signed-in user
   let configUser = null;
@@ -264,6 +269,7 @@
   let menuTimer = null;
   function toggleMenu(open) {
     menu?.classList.toggle('globeMenuOpen', open);
+    layer?.querySelector('.globeMenuButton')?.setAttribute('aria-expanded', String(!!open));
     if (menu) menu.style.transform = open ? 'translateX(0)' : 'translateX(100%)';
     clearInterval(menuTimer);
     menuTimer = open ? setInterval(async () => {
@@ -294,24 +300,27 @@
   }
 
   function buildMenu() {
-    const tab = document.createElement('button');
-    tab.type = 'button';
-    tab.title = text('globes');
-    tab.innerHTML = tabIcon;
-    tab.style.cssText = 'position:absolute;top:64px;right:0;z-index:2;display:flex;align-items:center;justify-content:center;width:26px;'
-      + 'height:52px;padding:0;border:0;border-radius:6px 0 0 6px;background:rgba(0,0,0,.55);color:#fff;opacity:.85;cursor:pointer;';
-    tab.addEventListener('click', () => toggleMenu(!menu.classList.contains('globeMenuOpen')));
+    // Left of the X, in the strip above the menu list, so it stays in reach while the menu is open.
+    const menuButton = document.createElement('button');
+    menuButton.type = 'button';
+    menuButton.className = 'globeLayerButton globeMenuButton';
+    menuButton.title = text('globes');
+    menuButton.setAttribute('aria-label', text('globes'));
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.innerHTML = globeIcon;
+    menuButton.style.right = '68px';
+    menuButton.addEventListener('click', () => toggleMenu(!menu.classList.contains('globeMenuOpen')));
     menu = document.createElement('div');
     menu.style.cssText = 'position:absolute;top:0;right:0;bottom:0;z-index:3;width:280px;max-width:80vw;padding-top:64px;box-sizing:border-box;'
       + 'background:rgba(16,16,16,.92);color:#eee;transform:translateX(100%);transition:transform .25s ease;overflow-y:auto;';
     const list = document.createElement('div');
     list.className = 'globeMenuList';
     menu.appendChild(list);
-    layer.appendChild(tab);
+    layer.appendChild(menuButton);
     layer.appendChild(menu);
-    // A click beside the open menu closes it (the menu covers the tab).
+    // A click beside the open menu closes it.
     layer.addEventListener('pointerdown', e => {
-      if (menu.classList.contains('globeMenuOpen') && !menu.contains(e.target) && e.target !== tab && !tab.contains(e.target)) toggleMenu(false);
+      if (menu.classList.contains('globeMenuOpen') && !menu.contains(e.target) && !menuButton.contains(e.target)) toggleMenu(false);
     }, true);
   }
 
@@ -335,9 +344,13 @@
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
     closeButton.title = text('close');
+    closeButton.className = 'globeLayerButton';
+    closeButton.setAttribute('aria-label', text('close'));
     closeButton.innerHTML = closeIcon;
-    closeButton.style.cssText = 'position:absolute;top:12px;right:12px;z-index:4;display:flex;padding:6px;border:0;border-radius:50%;'
-      + 'background:rgba(0,0,0,.55);color:#fff;opacity:.85;cursor:pointer;';
+    closeButton.style.right = '12px';
+    const style = document.createElement('style');
+    style.textContent = layerButtonStyle;
+    layer.appendChild(style);
     closeButton.addEventListener('click', () => close(true));
     layer.appendChild(closeButton);
     document.body.appendChild(layer);
@@ -359,13 +372,15 @@
     show(openingEntry());
   }
 
-  // Where the button goes: the legacy header, or the header of Jellyfin 12's modern layout, whose icons sit in a box beside
-  // the user menu. There the button borrows the classes of the user menu button and the size of the icons beside it.
-  // The dashboard has a modern header with a user menu too, but no search: the button stays off it.
+  // Where the button goes: the legacy header, or the header of the modern layout, whose icons sit in a box beside the user
+  // menu. There the button borrows the classes of the search button, an icon like the others; the user menu button sits
+  // at the edge and carries a negative margin. The dashboard has a modern header with a user menu too, but no search:
+  // the button stays off it.
   function headerSlot() {
     const userMenu = document.querySelector('header.MuiAppBar-root [aria-controls="app-user-menu"]');
-    if (userMenu?.getClientRects().length && userMenu.closest('header').querySelector('a[href^="#/search"]')) {
-      return { parent: userMenu.parentElement.previousElementSibling ?? userMenu.parentElement, className: userMenu.className, modern: true };
+    const search = userMenu?.closest('header').querySelector('a[href^="#/search"]');
+    if (userMenu?.getClientRects().length && search) {
+      return { parent: userMenu.parentElement.previousElementSibling ?? userMenu.parentElement, className: search.className, modern: true };
     }
     // Only a header that shows: during start-up the hidden legacy header is there before the modern one appears.
     const legacy = document.querySelector('.headerRight');
@@ -388,6 +403,20 @@
     return suitable;
   }
 
+  // The header buttons of Random, Autoscroll, Fullscreen, Cinema Project and Destroy share one order: the one the admin set
+  // in Essentials when it is installed, else this list. Each goes before the first button it does not know or that comes
+  // later, so they line up whichever script runs first.
+  const HEADER_BUTTON_ORDER = ['randomMovieButton', 'jf-scroll-btn', 'jf-fullscreen-btn', 'jf-globe-btn', 'jf-cinema-btn', 'jf-destroy-btn'];
+  function headerButtonRank(el) {
+    const id = el.id === 'randomMovieButtonContainer' ? 'randomMovieButton' : el.id;
+    return (window.JellyfinEssentials?.headerOrder || HEADER_BUTTON_ORDER).indexOf(id);
+  }
+  function placeInOrder(box, el) {
+    const rank = headerButtonRank(el);
+    const next = [...box.children].find(child => child !== el && (headerButtonRank(child) === -1 || headerButtonRank(child) > rank));
+    box.insertBefore(el, next ?? null);
+  }
+
   function addButton() {
     const slot = headerSlot();
     if (!slot || !api()?.getCurrentUserId() || !deviceSuits()) return;
@@ -405,6 +434,7 @@
     existing?.remove();
     if (!config.isAdmin && !config.globes.length) return;
     const button = document.createElement('button');
+    button.id = 'jf-globe-btn';
     button.type = 'button';
     button.title = text('title');
     button.setAttribute('aria-label', text('title'));
@@ -415,7 +445,7 @@
       button.firstChild.style.fontSize = '1.5rem';
     }
     button.addEventListener('click', open);
-    slot.parent.insertBefore(button, slot.parent.firstChild);
+    placeInOrder(slot.parent, button);
   }
 
   new MutationObserver(addButton).observe(document.body, { childList: true, subtree: true });
