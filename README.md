@@ -154,7 +154,7 @@ The first build reads every picture once and can take a while for a large librar
 - **Right-click** a tile: the globe turns to it and zooms in until it fills the screen.
 - **Double-click** a tile: what the admin set for its media type, see [Double-Click](#double-click).
 - **Close:** the X, Esc or Back.
-- **Switch globes:** the small tab below the X opens the side menu, with the build progress of each globe.
+- **Switch globes:** the globe button left of the X opens the side menu, with the build progress of each globe. Both buttons stay dim until the mouse is on them.
 
 The poles carry the Jellyfin logo on the globe's color. When the detail page, the player or the photo viewer opens, the globe steps aside, and it comes back with the same view when you return.
 
