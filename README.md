@@ -40,6 +40,7 @@ Please also have a look at my other plugins:
   - [Order](#order)
   - [Look and Updates](#look-and-updates)
 - [Home Videos and Photos](#home-videos-and-photos)
+  - [Play Jump](#play-jump)
 - [Games with Playnite Bridge](#games-with-playnite-bridge)
 - [Updates and Tasks](#updates-and-tasks)
 - [Parental Controls](#parental-controls)
@@ -151,8 +152,9 @@ The first build reads every picture once and can take a while for a large librar
 
 - **Turn:** drag with the mouse.
 - **Zoom:** the mouse wheel. Close up, the sharp pictures load for the tiles in view.
-- **Right-click** a tile: the globe turns to it and zooms in until it fills the screen.
+- **Right-click** a tile: the globe turns until the tile stands in the middle and marks it.
 - **Double-click** a tile: what the admin set for its media type, see [Double-Click](#double-click).
+- **Random:** on a globe with **Random Button**, the die left of the other buttons flies to a random title and marks it. The globe lifts a little on long ways and sinks onto the tile until it is about a third of the screen high. Every title has the same chance, however many pictures it brings.
 - **Close:** the X, Esc or Back.
 - **Switch globes:** the globe button left of the X opens the side menu, with the build progress of each globe. Both buttons stay dim until the mouse is on them.
 
@@ -179,7 +181,7 @@ What a double-click does, per media type:
 | Photo | Photo Viewer, Detail Page | Photo Viewer |
 | Game (with Playnite Bridge) | Detail Page, Play, Open in Playnite | Detail Page |
 
-Play starts the title in Jellyfin's own player. Trailer plays the movie's own trailer, else one from the internet in a new tab.
+Play starts the title in Jellyfin's own player. Trailer plays the movie's own trailer, else one from the internet in a new tab. A home video can also start where its backdrop was taken, see [Play Jump](#play-jump).
 
 ### Globes
 
@@ -207,6 +209,7 @@ Every globe has its own settings on the **Globes** tab. Each row shows the globe
 - **Include Children:** seasons join their series and movies join their collection.
 - **Collection Titles Alone:** with children, a movie of a collection also stands on its own.
 - **Backdrops:** Main Backdrop, All, All Except Main, or chosen numbers like `2-5, 8`.
+- **Play Jump** (home videos): a double-click on a backdrop starts the video where the backdrop was taken, see [Play Jump](#play-jump). Off by default.
 
 ### Pictures
 
@@ -230,6 +233,7 @@ Every globe has its own settings on the **Globes** tab. Each row shows the globe
 - **Reshuffle:** when a random globe is mixed anew although its titles stayed the same: on the automatic update (default), on every update, or never.
 - **Start:** where the order begins: in front on the equator, at the north pole or at the south pole; not with Random.
 - **Start View:** how the globe is seen on opening: from the side (default), on the first title, from above or from below. It acts at once, without a new build.
+- **Random Button:** a die at the top right that flies to a random title. Off by default; it acts at once, without a new build.
 
 ### Look and Updates
 
@@ -242,6 +246,16 @@ Every globe has its own settings on the **Globes** tab. Each row shows the globe
 ## Home Videos and Photos
 
 For a home video library, a globe chooses **Videos**, **Photos** or both, and its folders: **Only Ticked Folders** or **All Except Ticked Folders**, at any depth. Every photo comes with its own picture, a video with **Poster** ticked, and each fits its tile by **Picture Fit**. Photos turned by their camera keep their right orientation.
+
+### Play Jump
+
+Thumbnail tools such as Video Thumbnails Maker take their pictures at even steps through a video. Saved as Jellyfin backdrops (`<video>-backdrop1.jpg`, `-backdrop2.jpg` …), they can lead straight to their place: with **Play Jump** ticked, a double-click on such a backdrop starts the video at
+
+**runtime × number ÷ divisor**
+
+The number is the one in the file name (`backdrop7` is 7), so a missing picture shifts nothing. **Numbers** says which backdrops jump (default `1-9`), the **Divisor** how the tool spaced them: a sheet of n pictures spaced evenly with none at the very start or end takes n + 1, so 10 for a 3×3 sheet (default). The main backdrop, numbers outside the range and anything amiss start from the beginning as before.
+
+Play Jump shows only for globes with a home video library, and works when Backdrop is ticked and the Home Video double-click is **Play**. It acts at once, without a new build.
 
 ---
 

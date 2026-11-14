@@ -72,6 +72,26 @@ public sealed class ImageStore
         }
     }
 
+    /// <summary>The image file a record was made from, or null; the caller holds <see cref="Reading"/>.</summary>
+    public string? FileOf(ArtworkKind kind, int record)
+    {
+        string? key;
+        lock (_lock)
+        {
+            key = _records.FirstOrDefault(r => r.Value == record && KindOf(r.Key) == kind.Index).Key;
+        }
+
+        if (key is null)
+        {
+            return null;
+        }
+
+        // Key = kind|file|modified|treatment: cut from both ends, so a '|' inside the path does no harm.
+        var end = key.LastIndexOf('|', key.LastIndexOf('|') - 1);
+        var start = key.IndexOf('|', StringComparison.Ordinal) + 1;
+        return end > start ? key[start..end] : null;
+    }
+
     public ImageInfo? Info(string key)
     {
         lock (_lock)

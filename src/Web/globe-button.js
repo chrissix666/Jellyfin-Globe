@@ -1,5 +1,6 @@
 // Globe: a globe button in the header; a click covers the page with a layer in the globe's colour that shows the globe.
-// The layer has only an X; with two or more globes a globe button left of it slides in a side menu to switch globes.
+// The layer has an X; with two or more globes a globe button left of it slides in a side menu to switch globes, and a globe
+// set up for it shows a die further left that flies to a random title.
 // X, Esc and Back close it (Esc closes an open menu first). A double-click does what the admin set for the title's media
 // type (detail page, play, trailer, photo viewer, a game's start). While Jellyfin shows the player or a page the layer is hidden, and it
 // comes back with the same view when Jellyfin returns to where it was opened.
@@ -9,9 +10,9 @@
 
   const texts = {
     en: { noGlobe: 'No globe has been created yet.', adminHint: 'Create one under Dashboard › Plugins › Globe.',
-      notReady: 'This globe is not built yet.', failed: 'This could not be started.', started: 'Started.', unsupported: 'This device cannot show the globe.', building: 'being built', close: 'Close', globes: 'Globes', title: 'Globe' },
+      notReady: 'This globe is not built yet.', failed: 'This could not be started.', started: 'Started.', unsupported: 'This device cannot show the globe.', building: 'being built', close: 'Close', globes: 'Globes', title: 'Globe', random: 'Random title' },
     de: { noGlobe: 'Es wurde noch kein Globe erstellt.', adminHint: 'Erstelle einen unter Dashboard › Plugins › Globe.',
-      notReady: 'Dieser Globe ist noch nicht gebaut.', failed: 'Das ließ sich nicht starten.', started: 'Gestartet.', unsupported: 'Dieses Gerät kann den Globe nicht anzeigen.', building: 'wird gebaut', close: 'Schließen', globes: 'Globes', title: 'Globe' },
+      notReady: 'Dieser Globe ist noch nicht gebaut.', failed: 'Das ließ sich nicht starten.', started: 'Gestartet.', unsupported: 'Dieses Gerät kann den Globe nicht anzeigen.', building: 'wird gebaut', close: 'Schließen', globes: 'Globes', title: 'Globe', random: 'Zufälliger Titel' },
   };
   const text = key => (texts[(document.documentElement.lang || navigator.language || 'en').slice(0, 2).toLowerCase()] || texts.en)[key];
 
@@ -23,11 +24,16 @@
     + '</svg></span>';
   const closeIcon = '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'
     + '<path d="M6 6l12 12M18 6L6 18"/></svg>';
+  // A die with five pips like the one of the Random Button script, drawn as an outline to match the X.
+  const dieIcon = '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">'
+    + '<rect x="4" y="4" width="16" height="16" rx="3"/><g fill="currentColor" stroke="none"><circle cx="8.5" cy="8.5" r="1.5"/>'
+    + '<circle cx="15.5" cy="8.5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8.5" cy="15.5" r="1.5"/>'
+    + '<circle cx="15.5" cy="15.5" r="1.5"/></g></svg>';
   // The X and the globe button of the layer: dimmed where a mouse can hover, bright on hover, on keyboard focus and while
   // the menu is open; on touch screens as bright as ever, since nothing hovers there.
   const layerButtonStyle = '.globeLayerButton{position:absolute;top:12px;z-index:4;display:flex;padding:6px;border:0;border-radius:50%;'
     + 'background:rgba(0,0,0,.55);color:#fff;opacity:.85;cursor:pointer;transition:opacity .15s ease}'
-    + '.globeLayerButton svg{display:block;width:32px;height:32px}'
+    + '.globeLayerButton[hidden]{display:none}.globeLayerButton svg{display:block;width:32px;height:32px}'
     + '@media (hover:hover){.globeLayerButton{opacity:.45}.globeLayerButton:hover,.globeLayerButton[aria-expanded="true"]{opacity:1}}'
     + '.globeLayerButton:focus-visible{opacity:1;outline:2px solid #fff;outline-offset:2px}';
 
@@ -108,12 +114,14 @@
   }
 
   // Playing goes through Jellyfin's own session, so its player (or photo viewer) opens; the layer waits hidden.
-  async function playNow(itemIds) {
+  async function playNow(itemIds, startTicks) {
     const sessions = await api().getJSON(api().getUrl('Sessions', { deviceId: api().deviceId() }));
     if (!sessions.length) return note(text('failed'));
     hide();
+    const query = { playCommand: 'PlayNow', itemIds: itemIds.join(',') };
+    if (startTicks > 0) query.startPositionTicks = startTicks;
     try {
-      await api().ajax({ type: 'POST', url: api().getUrl(`Sessions/${sessions[0].Id}/Playing`, { playCommand: 'PlayNow', itemIds: itemIds.join(',') }) });
+      await api().ajax({ type: 'POST', url: api().getUrl(`Sessions/${sessions[0].Id}/Playing`, query) });
     } catch (error) {
       console.warn('Globe:', error);
       resume();
@@ -124,7 +132,7 @@
   const actionKeys = { Movie: 'movie', Series: 'series', Season: 'season', BoxSet: 'collection', Video: 'video', Photo: 'photo' };
 
   // The admin's table of actions per media type; whatever cannot run opens the detail page.
-  async function onTile(item) {
+  async function onTile(item, where) {
     // Without Playnite Bridge a game has nowhere to go.
     if (item.type === 'Game' || item.type === 'GameCollection') return config.games ? onGame(item, item.type === 'Game' ? config.actions.game || 'Details' : 'Details') : undefined;
     const key = actionKeys[item.type];
@@ -138,9 +146,25 @@
       if (remote) return void window.open(remote, '_blank', 'noopener');
       action = config.actions.noTrailer;
     }
+    if (action === 'Play' && item.type === 'Video' && current?.playJump && where) return playNow([item.id], await jumpTicks(item, where));
     if (action === 'Play' || action === 'Viewer') return playNow([item.id]);
     hide();
     window.Emby.Page.show(`details?id=${item.id}&serverId=${api().serverId()}`);
+  }
+
+  // Play Jump: a home video's backdrop from a thumbnail tool starts where it was taken; anything amiss starts from the
+  // beginning, without a message.
+  async function jumpTicks(item, where) {
+    try {
+      const response = await fetch(api().getUrl(`Globe/data/${current.id}/jump/${where.tile}`, { build: where.build }),
+        { headers: { Authorization: `MediaBrowser Token="${api().accessToken()}"` } });
+      if (response.status !== 200) return 0;
+      const jump = await response.json();
+      return jump.itemId === item.id ? jump.ticks : 0;
+    } catch (error) {
+      console.warn('Globe:', error);
+      return 0;
+    }
   }
 
   // A game of Playnite Bridge: its buttons come from the Bridge, already fitted to this user and device, in the order of
@@ -243,6 +267,7 @@
     current = entry;
     layer.style.background = entry.color;
     updateMenu();
+    showDie();
     if (!entry.ready) { message([text('notReady')]); return; }
     try {
       localStorage.setItem(lastUsedKey(), entry.id);
@@ -258,11 +283,30 @@
       });
       if (ticket !== opening) { created.dispose(); return; }
       globe = created;
+      showDie();
     } catch (error) {
       if (ticket !== opening) return;
       console.warn('Globe:', error);
       message([text(error.unsupported ? 'unsupported' : 'notReady')]);
     }
+  }
+
+  // The die: left of the globes button, or of the X with a single globe; only while a globe with it is shown.
+  function showDie() {
+    let die = layer?.querySelector('.globeDieButton');
+    if (!layer || !config) return;
+    if (!die) {
+      die = document.createElement('button');
+      die.type = 'button';
+      die.className = 'globeLayerButton globeDieButton';
+      die.title = text('random');
+      die.setAttribute('aria-label', text('random'));
+      die.innerHTML = dieIcon;
+      die.style.right = config.globes.length > 1 ? '124px' : '68px';
+      die.addEventListener('click', () => globe?.random());
+      layer.appendChild(die);
+    }
+    die.hidden = !(globe && current?.randomButton);
   }
 
   // While the menu is open and a globe is being built, its progress follows every few seconds.

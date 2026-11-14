@@ -25,6 +25,7 @@ namespace Jellyfin.Plugin.Globe.Controllers;
 public class GlobeController : ControllerBase
 {
     private static readonly Regex DataFile = new("^[a-z0-9.-]+$", RegexOptions.Compiled);
+    private static readonly Regex BackdropNumber = new("backdrop([0-9]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private readonly IUserManager _userManager;
 
     public GlobeController(IUserManager userManager)
@@ -71,6 +72,8 @@ public class GlobeController : ControllerBase
                 name = g.Name,
                 color = g.Color,
                 startView = g.StartView,
+                playJump = JumpActive(g),
+                randomButton = g.RandomButton,
                 state = status.State,
                 percent = Math.Round(status.Percent),
                 ready = Service.IsBuilt(g.Id),
@@ -202,6 +205,80 @@ public class GlobeController : ControllerBase
         Response.Headers.CacheControl = "no-cache";
         return PhysicalFile(file, type, true);
     }
+
+    /// <summary>Play Jump: where the home video of a backdrop tile starts, as runtime x N / divisor with N the number in
+    /// the backdrop's file name ("…-backdrop7.jpg"); 204 when this tile does not jump. Everything comes from the
+    /// globe's own data, nothing but the tile number from the request.</summary>
+    [HttpGet("data/{id}/jump/{tile:int}")]
+    [Authorize]
+    public ActionResult GetJump(string id, int tile, [FromQuery] string? build, [FromServices] ILibraryManager libraryManager)
+    {
+        var globe = Viewable(id);
+        if (globe is null || !JumpActive(globe) || tile < 0)
+        {
+            return NoContent();
+        }
+
+        var folder = Service.GlobeFolder(id);
+        var store = Service.Store();
+        string? file;
+        using (store.Reading())
+        {
+            // Tile numbers mean something else after a rebuild.
+            if (build != Service.Fingerprint(id))
+            {
+                return NoContent();
+            }
+
+            var recordsFile = Path.Combine(folder, "records.bin");
+            var table = System.IO.File.Exists(recordsFile) ? System.IO.File.ReadAllBytes(recordsFile) : Array.Empty<byte>();
+            if ((long)(tile + 1) * 8 > table.Length)
+            {
+                return NoContent();
+            }
+
+            var kind = ArtworkKind.All[BitConverter.ToInt32(table, tile * 8)];
+            if (kind.ImageType != MediaBrowser.Model.Entities.ImageType.Backdrop)
+            {
+                return NoContent();
+            }
+
+            file = store.FileOf(kind, BitConverter.ToInt32(table, tile * 8 + 4));
+        }
+
+        var match = file is null ? null : BackdropNumber.Match(Path.GetFileNameWithoutExtension(file));
+        if (match is null || !match.Success || !int.TryParse(match.Groups[1].Value, out var number)
+            || !Selection.InChoice(number, globe.JumpNumbers) || number >= globe.JumpDivisor)
+        {
+            return NoContent();
+        }
+
+        // The item of the tile, from the globe's tables: tiles.bin holds 16 floats per tile, the fourth is the item.
+        using var tiles = System.IO.File.OpenRead(Path.Combine(folder, "tiles.bin"));
+        var entry = new byte[4];
+        tiles.Seek(((long)tile * 16 + 3) * 4, SeekOrigin.Begin);
+        if (tiles.Read(entry, 0, 4) != 4)
+        {
+            return NoContent();
+        }
+
+        var itemIndex = (int)BitConverter.ToSingle(entry, 0);
+        using var items = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(Path.Combine(folder, "items.json")));
+        if (itemIndex < 0 || itemIndex >= items.RootElement.GetArrayLength()
+            || !Guid.TryParse(items.RootElement[itemIndex].GetProperty("id").GetString(), out var itemId)
+            || libraryManager.GetItemById(itemId) is not { } video
+            || video.GetType() != typeof(MediaBrowser.Controller.Entities.Video) || video.RunTimeTicks is not > 0)
+        {
+            return NoContent();
+        }
+
+        return Ok(new { itemId = itemId.ToString("N"), ticks = video.RunTimeTicks.Value * number / globe.JumpDivisor });
+    }
+
+    /// <summary>Play Jump works only for home videos on Play with backdrops on the globe.</summary>
+    private static bool JumpActive(GlobeDefinition globe) =>
+        globe.PlayJump && globe.JumpDivisor >= 2 && Plugin.Instance!.Configuration.HomeVideoAction == "Play"
+        && globe.ArtworkTypes.Contains("Backdrop", StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Build state and sizes of every globe and of the store, for the admin page.</summary>
     [HttpGet("Status")]

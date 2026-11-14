@@ -76,6 +76,15 @@ public class GlobeDefinition
     /// one), "2-5,8".</summary>
     public string Backdrops { get; set; } = "1";
 
+    /// <summary>Home videos with Play: a backdrop made by a thumbnail tool starts its video where it was taken.</summary>
+    public bool PlayJump { get; set; }
+
+    /// <summary>With Play Jump: backdrop N of a video was taken at runtime x N / divisor.</summary>
+    public int JumpDivisor { get; set; } = 10;
+
+    /// <summary>With Play Jump: the numbers in the backdrop file names that jump ("backdrop7" is 7), like "1-9".</summary>
+    public string JumpNumbers { get; set; } = "1-9";
+
     /// <summary>"Random" or one of Jellyfin's sort fields (SortName, CommunityRating, CriticRating, DateCreated,
     /// OfficialRating, PremiereDate, Runtime, DateLastContentAdded).</summary>
     public string Sort { get; set; } = "SortName";
@@ -87,6 +96,9 @@ public class GlobeDefinition
 
     /// <summary>How the globe is seen on opening: "Side", "FirstTitle", "Above" or "Below".</summary>
     public string StartView { get; set; } = "Side";
+
+    /// <summary>A die at the top right flies to a random title.</summary>
+    public bool RandomButton { get; set; }
 
     /// <summary>With Random: keep the tiles of a title together.</summary>
     public bool Cluster { get; set; } = true;

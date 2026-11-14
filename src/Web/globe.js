@@ -444,6 +444,7 @@ export async function createGlobe(container, { base, globeId, color = '#000000',
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
     onMove();
+    if (snap?.fly) snap = null;
     camera.position.setLength(1 + Math.min(20, Math.max(0.0003, (dist() - 1) * Math.pow(1.0015, e.deltaY))));
   }, { passive: false });
 
@@ -473,19 +474,39 @@ export async function createGlobe(container, { base, globeId, color = '#000000',
     ray.setFromCamera(ndc, camera);
     return ray.ray.intersectSphere(sphere, hit) ? tileAt(hit.normalize()) : -1;
   }
-  function snapTo(t) {
+  // The distance at which a tile stands about a third of the screen high and at most four fifths of it wide.
+  function viewDistance(t) {
+    const c = tileCentre(t), h = H * tiles[t * 16 + 1], w = 2 * Math.PI * columns[tileColumn[t] * 4 + 1] * Math.cos(c.lat);
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), tanH = tanV * camera.aspect;
+    const fit = (size, share, tan) => Math.cos(size / 2) + Math.sin(size / 2) / (share * tan);
+    return THREE.MathUtils.clamp(Math.max(fit(h, 1 / 3, tanV), fit(w, 0.8, tanH)), 1.0003, 21);
+  }
+  // Right-click turns to a tile in 0.4 s. The die flies like a plane in 1.2 to 2.2 s: it climbs while it starts to turn,
+  // crosses at a height that grows with the way (only when that is above start and goal), and sinks onto
+  // the tile at its view distance; the height changes on a log scale, the turn happens mostly up high. Both move along
+  // latitude and longitude like a drag, so the view never turns over a pole.
+  function snapTo(t, fly = false) {
     uniforms.selected.value = t;
     spin = null;
     onMove();
-    snap = { tile: t, from: camera.position.clone().normalize(), to: tileCentre(t).dir, t0: performance.now() };
+    const from = camLatLon(), to = tileCentre(t), d0 = dist(), d1 = fly ? viewDistance(t) : d0;
+    const angle = Math.acos(THREE.MathUtils.clamp(camera.position.clone().normalize().dot(to.dir), -1, 1));
+    const low0 = Math.log(d0 - 1), low1 = Math.log(d1 - 1), peak = Math.log(Math.min(0.7, 0.45 * angle) || 1e-6);
+    snap = {
+      tile: t, fly, from, dLat: to.lat - from.lat, dLon: wrap(to.lon - from.lon), low0, low1, t0: performance.now(),
+      duration: fly ? 1200 + 1000 * angle / Math.PI : 400, climb: Math.max(0, peak - Math.max(low0, low1)),
+    };
   }
   function snapStep(now) {
-    const x = Math.min(1, (now - snap.t0) / 400), e = x < .5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
-    const w = Math.acos(Math.min(1, snap.from.dot(snap.to)));
-    const dir = w < 1e-6 ? snap.to.clone() : snap.from.clone().multiplyScalar(Math.sin((1 - e) * w) / Math.sin(w))
-      .add(snap.to.clone().multiplyScalar(Math.sin(e * w) / Math.sin(w)));
-    camera.position.copy(dir.normalize().multiplyScalar(camera.position.length()));
-    camera.lookAt(0, 0, 0);
+    // The frame's time can lie a little before the click; below zero the first frame would step backwards.
+    const x = THREE.MathUtils.clamp((now - snap.t0) / snap.duration, 0, 1);
+    let e = x < .5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
+    if (snap.fly) {
+      const h = (1 - Math.cos(Math.PI * x)) / 2;
+      camera.position.setLength(1 + Math.min(20, Math.exp(snap.low0 + (snap.low1 - snap.low0) * h + snap.climb * 4 * h * (1 - h))));
+      e = x < .5 ? 16 * x ** 5 : 1 - (-2 * x + 2) ** 5 / 2;
+    }
+    setCam(snap.from.lat + snap.dLat * e, snap.from.lon + snap.dLon * e);
     if (x >= 1) {
       const t = snap.tile;
       snap = null;
@@ -502,7 +523,7 @@ export async function createGlobe(container, { base, globeId, color = '#000000',
     if (t < 0) return;
     if (tileScreenPx(t) < 40) { snapTo(t); return; }
     uniforms.selected.value = t;
-    onPlay(items[tiles[t * 16 + 3]]);
+    onPlay(items[tiles[t * 16 + 3]], { tile: t, build: `${layout.fingerprint}:${layout.storeGeneration ?? 0}` });
   });
 
   const onResize = () => {
@@ -523,7 +544,19 @@ export async function createGlobe(container, { base, globeId, color = '#000000',
   };
   renderer.setAnimationLoop(loop);
 
+  // The die: a random title, every title with the same chance, then one of its tiles; never the tile already chosen.
+  const titleTiles = [];
+  for (let t = 0; t < N; t++) (titleTiles[tiles[t * 16 + 3]] ??= []).push(t);
+  function randomTile() {
+    const shown = uniforms.selected.value;
+    const titles = titleTiles.filter(list => list && list.some(t => t !== shown));
+    if (!titles.length) return shown;
+    const choice = titles[Math.floor(Math.random() * titles.length)].filter(t => t !== shown);
+    return choice[Math.floor(Math.random() * choice.length)];
+  }
+
   return {
+    random() { const t = randomTile(); if (t >= 0) snapTo(t, true); },
     pause() { renderer.setAnimationLoop(null); },
     resume() { onResize(); renderer.setAnimationLoop(loop); },
     dispose() {

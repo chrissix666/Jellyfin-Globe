@@ -257,9 +257,9 @@
         DataFolder: { type: 'text', def: '' }
     };
     var GLOBE_DEFAULTS = { Libraries: [], Folders: [], FolderMode: 'Only', Media: 'Both', ArtworkTypes: ['Poster'], IncludeChildren: false,
-        CollectionTitlesAlone: false, Backdrops: '1', Sort: 'SortName', Descending: false, Start: 'Front', Cluster: true, Reshuffle: 'Automatic',
+        CollectionTitlesAlone: false, Backdrops: '1', PlayJump: false, JumpNumbers: '1-9', JumpDivisor: 10, Sort: 'SortName', Descending: false, Start: 'Front', Cluster: true, Reshuffle: 'Automatic',
         MaxRating: '', LeaveOutUnrated: false, BlackBars: true, PictureFit: 'Adaptive', CropLimit: 15, CoverFit: 'Crop', Versions: 'Main',
-        KeepVersionsTogether: true, Discs: '1', StartView: 'Side', AutoUpdate: false, Color: '#000000' };
+        KeepVersionsTogether: true, Discs: '1', StartView: 'Side', RandomButton: false, AutoUpdate: false, Color: '#000000' };
     var ARTWORK = [['Poster', 'Poster'], ['Backdrop', 'Backdrop'], ['Thumb', 'Thumb'], ['Logo', 'Logo'], ['Clearart', 'Clearart'], ['Banner', 'Banner'], ['Disc', 'Disc']];
     var BACKDROP_MODES = { '1': 'main', '1-': 'all', '2-': 'others' };
     var BACKDROP_CHOICE = /^\s*\d+(-\d*)?(\s*,\s*\d+(-\d*)?)*\s*$/;
@@ -334,6 +334,10 @@
         setField('OpeningGlobe', value);
     }
     $('MovieAction').addEventListener('change', updateGeneral);
+    // Play Jump of every globe depends on the home video action.
+    $('HomeVideoAction').addEventListener('change', function () {
+        $('glGlobes').querySelectorAll('.glGlobe').forEach(function (box) { updateGlobe(box, globeOf(box).globe); });
+    });
     // The master switch only sets the ticks of the globes; it is not stored itself.
     $('glAutoAll').addEventListener('change', function () {
         var on = $('glAutoAll').checked;
@@ -423,6 +427,11 @@
             + '<option value="main">Main Backdrop</option><option value="all">All</option><option value="others">All Except Main</option><option value="custom">Chosen Numbers</option></select>'
             + '<input type="text" class="glText" data-field="BackdropNumbers" style="max-width:110px" placeholder="2-5, 8" value="' + escapeHtml(g.Backdrops) + '"></div>'
             + '<div class="glDesc">Numbers count through the backdrops of a title with 1 as the main one, for example 2-5, 8.</div></div>'
+            + '<div class="glRow" data-row="playjump"><span class="glRowLabel">Play Jump</span><div class="glNumberBox">'
+            + '<div class="checkboxContainer"><label class="emby-checkbox-label"><input type="checkbox" data-field="PlayJump"' + (g.PlayJump ? ' checked' : '') + '><span></span></label></div>'
+            + '<span class="glJumpFields"><input type="text" class="glText" data-field="JumpNumbers" style="max-width:110px" placeholder="1-9" value="' + escapeHtml(g.JumpNumbers) + '">'
+            + '<span class="glUnit">÷</span><input type="number" class="glNumber" data-field="JumpDivisor" min="2" max="1000" value="' + (g.JumpDivisor || 10) + '"></span></div>'
+            + '<div class="glDesc">With Play, a backdrop from a thumbnail tool starts its video where it was taken: runtime × number ÷ divisor, the numbers as in the file names (backdrop7 = 7), for example 1-9 ÷ 10 for a 3×3 sheet.</div></div>'
             + choose('Versions', [['Main', 'Main Version'], ['All', 'All Versions']], 'Versions', 'Which versions of a game come in, the one its tile shows or every one.', 'versions')
             + check('KeepVersionsTogether', g.KeepVersionsTogether, 'Keep Versions Together', 'The versions of a game stand at the place of its main version.', 'together')
             + '<div class="glRow" data-row="discs"><label class="glRowLabel">Discs</label><div class="glNumberBox"><select class="glSelect" data-field="DiscMode" style="max-width:200px">'
@@ -449,6 +458,7 @@
             + choose('Start', [['Front', 'In Front'], ['NorthPole', 'North Pole'], ['SouthPole', 'South Pole']], 'Start', 'Where the order begins: in front on the equator, at the north pole or at the south pole.', 'start')
             + choose('StartView', [['Side', 'Side'], ['FirstTitle', 'On the First Title'], ['Above', 'From Above'], ['Below', 'From Below']], 'Start View',
                 'How the globe is seen on opening, from the side, on the first title, from above or from below.')
+            + check('RandomButton', g.RandomButton, 'Random Button', 'A die at the top right flies to a random title and marks it.')
             + '<div class="glRow"><label class="glRowLabel">Color</label><input type="color" class="glColor" data-field="Color" value="' + escapeHtml(g.Color || '#000000') + '">'
             + '<div class="glDesc">Background and globe color that shows through transparent artwork.</div></div>'
             + check('AutoUpdate', g.AutoUpdate, 'Update Automatically', 'The task Update Globes checks this globe at the times set in Scheduled Tasks.')
@@ -475,7 +485,7 @@
             return lib && lib.CollectionType === 'homevideos' && globe.Libraries.indexOf(lib.ItemId) >= 0;
         });
         globe.ArtworkTypes = [].filter.call(box.querySelectorAll('[data-artwork]'), function (c) { return c.checked; }).map(function (c) { return c.dataset.artwork; });
-        ['IncludeChildren', 'CollectionTitlesAlone', 'LeaveOutUnrated', 'Cluster', 'AutoUpdate', 'KeepVersionsTogether'].forEach(function (name) { globe[name] = field(box, name).checked; });
+        ['IncludeChildren', 'CollectionTitlesAlone', 'LeaveOutUnrated', 'Cluster', 'AutoUpdate', 'KeepVersionsTogether', 'RandomButton'].forEach(function (name) { globe[name] = field(box, name).checked; });
         globe.BlackBars = field(box, 'BlackBars').value === 'true';
         ['Media', 'FolderMode', 'PictureFit', 'MaxRating', 'Sort', 'Reshuffle', 'Start', 'StartView', 'Color', 'Versions', 'CoverFit'].forEach(function (name) { globe[name] = field(box, name).value; });
         var discMode = field(box, 'DiscMode').value;
@@ -485,6 +495,10 @@
         var mode = field(box, 'BackdropMode').value;
         globe.Backdrops = mode === 'custom' ? field(box, 'BackdropNumbers').value.trim() : Object.keys(BACKDROP_MODES).filter(function (k) { return BACKDROP_MODES[k] === mode; })[0];
         globe.Descending = field(box, 'Descending').value === 'true';
+        globe.PlayJump = field(box, 'PlayJump').checked;
+        globe.JumpNumbers = field(box, 'JumpNumbers').value.trim();
+        var divisor = parseInt(field(box, 'JumpDivisor').value, 10);
+        globe.JumpDivisor = isNaN(divisor) ? 0 : divisor;
     }
 
     // Shows what depends on what: Sort options from the libraries, Cluster and Reshuffle only with Random, Sort Order
@@ -505,7 +519,11 @@
         box.querySelector('[data-row="alone"]').classList.toggle('glFieldDisabled', !globe.IncludeChildren);
         box.querySelector('[data-row="backdrops"]').classList.toggle('glFieldDisabled', globe.ArtworkTypes.indexOf('Backdrop') < 0);
         field(box, 'BackdropNumbers').hidden = field(box, 'BackdropMode').value !== 'custom';
-        ['media', 'foldermode', 'fit'].forEach(function (row) { box.querySelector('[data-row="' + row + '"]').hidden = !home; });
+        ['media', 'foldermode', 'fit', 'playjump'].forEach(function (row) { box.querySelector('[data-row="' + row + '"]').hidden = !home; });
+        // Play Jump only with backdrops on the globe and Play for home videos; its fields only while it is ticked.
+        box.querySelector('[data-row="playjump"]').classList.toggle('glFieldDisabled',
+            globe.ArtworkTypes.indexOf('Backdrop') < 0 || getField('HomeVideoAction') !== 'Play');
+        box.querySelector('.glJumpFields').hidden = !field(box, 'PlayJump').checked;
         // Photos bring only their own picture, so with nothing but photos the artwork types do nothing.
         box.querySelector('[data-row="artwork"]').classList.toggle('glFieldDisabled',
             globe.Media === 'Photos' && home && homeLibraries(globe).length === globe.Libraries.length);
@@ -767,6 +785,8 @@
             ids[list[i].Id] = list[i].Name;
             if (!BACKDROP_CHOICE.test(list[i].Backdrops)) return 'The backdrop numbers of "' + list[i].Name + '" are not valid, write them like 2-5, 8.';
             if (!BACKDROP_CHOICE.test(list[i].Discs)) return 'The disc numbers of "' + list[i].Name + '" are not valid, write them like 2-5, 8.';
+            if (list[i].PlayJump && !BACKDROP_CHOICE.test(list[i].JumpNumbers)) return 'The Play Jump numbers of "' + list[i].Name + '" are not valid, write them like 1-9.';
+            if (list[i].PlayJump && !(list[i].JumpDivisor >= 2 && list[i].JumpDivisor <= 1000)) return 'The Play Jump divisor of "' + list[i].Name + '" has to be a whole number from 2 to 1000.';
         }
         return null;
     }

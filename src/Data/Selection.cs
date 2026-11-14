@@ -588,6 +588,25 @@ public static class Selection
         return numbers.Select(number => images[number - 1]);
     }
 
+    /// <summary>Whether <paramref name="number"/> is in <paramref name="choice"/>, written like the backdrop choice ("1-9", "2-", "1-5,8").</summary>
+    public static bool InChoice(int number, string choice)
+    {
+        foreach (var part in choice.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var ends = part.Split('-');
+            if (ends.Length <= 2 && int.TryParse(ends[0], out var first))
+            {
+                var last = ends.Length == 1 ? first : int.TryParse(ends[1], out var end) ? end : int.MaxValue;
+                if (number >= first && number <= last)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static void Shuffle<T>(IList<T> list, Random random)
     {
         for (var i = list.Count - 1; i > 0; i--)
